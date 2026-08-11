@@ -1,0 +1,12 @@
+# Publish only the browser-facing prototype assets from the repository root.
+.git
+.github
+config
+docs
+ingestion
+tests
+.gitignore
+README.md
+wrangler.jsonc
+**/__pycache__/**
+**/*.pyc
