@@ -8,12 +8,28 @@ const showMore = document.querySelector("#show-more");
 let products = [], visible = 6, current = [];
 
 const pct = value => value == null ? "—" : `${value.toFixed(2).replace(/\.00$/,"")}%`;
+const aud = value => value == null ? "—" : new Intl.NumberFormat("en-AU",{style:"currency",currency:"AUD",maximumFractionDigits:2}).format(value);
+const number = value => new Intl.NumberFormat("en-AU").format(value);
 const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
 const label = key => ({growthFit:"Growth fit",feeEfficiency:"Fee efficiency",netReturn:"Net return",performanceTest:"APRA test",completeness:"Data completeness"}[key]);
 
 function criteria() {
   const [growthMin,growthMax] = new FormData(form).get("growth").split(",").map(Number);
-  return { growthMin, growthMax, balance:document.querySelector("#balance").value, horizon:document.querySelector("#horizon").value };
+  return { growthMin, growthMax, amount:Number(document.querySelector("#balance").value), horizon:document.querySelector("#horizon").value };
+}
+
+function explanations(product, selected) {
+  const b=product.scoreBreakdown, fee=product.comparisonFee, ret=product.returns[selected.horizon].netReturn50kPct;
+  const distance=product.growthAllocationPct<selected.growthMin?selected.growthMin-product.growthAllocationPct:product.growthAllocationPct>selected.growthMax?product.growthAllocationPct-selected.growthMax:0;
+  const feeMethod=fee.estimated?`Estimated between APRA's $${number(fee.lowerAmount)} and $${number(fee.upperAmount)} published balance points.`:"Uses APRA's published balance point.";
+  const rows=[
+    ["Growth fit",b.growthFit,35,distance===0?`${pct(product.growthAllocationPct)} is inside the selected ${selected.growthMin}–${selected.growthMax}% range.`:`${pct(product.growthAllocationPct)} is ${distance.toFixed(1)} percentage points outside the selected range; 1.75 points are deducted per point outside.`],
+    ["Fee efficiency",b.feeEfficiency,25,`${pct(fee.effectivePct)} effective annual fee is ranked against ${product.peerCount} comparable products; lower fees earn more points.`],
+    ["Net return",b.netReturn,25,`${pct(ret)} ${selected.horizon.replace("y","-year")} annualised net return is ranked against ${product.peerCount} comparable products; higher returns earn more points.`],
+    ["APRA test",b.performanceTest,10,product.performanceTestResult==="Pass"?"APRA result is Pass, so all 10 points are awarded.":product.performanceTestResult==="Fail"?"APRA result is Fail, so 0 points are awarded.":"This stage was not assessed, so a neutral 5 points are used."],
+    ["Data completeness",b.completeness,5,b.completeness===5?"All five fields used by the model are present.":`${b.completeness} of 5 points based on fields available to the model.`]
+  ];
+  return `<div class="fee-detail"><h4>Estimated annual fees at ${aud(fee.amount)}</h4><div class="fee-total"><strong>${aud(fee.annualFee)}</strong><span>${pct(fee.effectivePct)} of comparison amount</span></div><p><code>${aud(fee.amount)} × ${pct(fee.effectivePct)} = ${aud(fee.annualFee)} per year</code></p><small>${feeMethod} APRA reports total fees and costs; the source does not provide every underlying fee component in this prototype.</small></div><div class="score-detail"><h4>How each score was calculated</h4>${rows.map(([name,value,max,why])=>`<div class="score-row"><div><strong>${name}</strong><span>${escapeHtml(why)}</span></div><b>${value}<small> / ${max}</small></b></div>`).join("")}</div>`;
 }
 
 function renderCard(product, selected) {
@@ -21,8 +37,8 @@ function renderCard(product, selected) {
   const flag = product.performanceTestResult == null ? '<span class="flag">APRA test not assessed for this stage</span>' : "";
   return `<article class="card">
     <div class="card-top"><div><h3>${escapeHtml(product.productName)}${escapeHtml(stage)}</h3><p class="fund">${escapeHtml(product.rseName)}</p></div><div class="score" style="--score:${product.matchScore}"><span>${product.matchScore}<small>/100</small></span></div></div>
-    <div class="metrics"><div class="metric"><strong>${pct(product.growthAllocationPct)}</strong><span>Growth assets</span></div><div class="metric"><strong>${pct(product.fees[selected.balance].totalPct)}</strong><span>Total fee · ${selected.balance}</span></div><div class="metric"><strong>${pct(product.returns[selected.horizon].netReturn50kPct)}</strong><span>Net return · ${selected.horizon}</span></div></div>
-    <details class="breakdown"><summary>Why this score</summary><ul>${Object.entries(product.scoreBreakdown).map(([key,value])=>`<li><span>${label(key)}</span><strong>${value}</strong></li>`).join("")}</ul></details>${flag}
+    <div class="metrics"><div class="metric"><strong>${pct(product.growthAllocationPct)}</strong><span>Growth assets</span></div><div class="metric"><strong>${aud(product.comparisonFee.annualFee)}</strong><span>Est. annual fee · ${pct(product.comparisonFee.effectivePct)}</span></div><div class="metric"><strong>${pct(product.returns[selected.horizon].netReturn50kPct)}</strong><span>Net return · ${selected.horizon}</span></div></div>
+    <details class="breakdown"><summary>View fee calculation and score explanation</summary>${explanations(product,selected)}</details>${flag}
   </article>`;
 }
 
@@ -30,7 +46,7 @@ function render(reset=true) {
   if (reset) visible=6;
   const selected=criteria(); current=scoreProducts(products,selected);
   title.textContent=`${current.length} comparable products`;
-  context.textContent=`Ranked for ${selected.growthMin}–${selected.growthMax}% growth, ${selected.balance.replace("k",",000")} balance and ${selected.horizon.replace("y","-year")} net return. Showing research matches, not recommendations.`;
+  context.textContent=`Ranked for ${selected.growthMin}–${selected.growthMax}% growth, ${aud(selected.amount)} comparison amount and ${selected.horizon.replace("y","-year")} net return. Showing research matches, not recommendations.`;
   cards.innerHTML=current.slice(0,visible).map(product=>renderCard(product,selected)).join("");
   showMore.hidden=visible>=current.length;
 }
