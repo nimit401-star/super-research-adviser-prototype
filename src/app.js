@@ -1,4 +1,5 @@
 import { scoreProducts } from "./score.js";
+import { findPdsLink } from "./pds.js";
 
 const cards = document.querySelector("#result-cards");
 const form = document.querySelector("#research-form");
@@ -35,10 +36,14 @@ function explanations(product, selected) {
 function renderCard(product, selected) {
   const stage = product.lifecycleStageName ? ` · ${product.lifecycleStageName}` : "";
   const flag = product.performanceTestResult == null ? '<span class="flag">APRA test not assessed for this stage</span>' : "";
+  const pds = findPdsLink(product);
+  const pdsAction = pds
+    ? `<div class="pds-action"><a href="${escapeHtml(pds.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(pds.label)} <span aria-hidden="true">↗</span></a><small>Official fund website · Link verified ${escapeHtml(pds.verifiedAt)}</small></div>`
+    : '<div class="pds-action unavailable"><span>PDS link not yet verified</span><small>Confirm the current document on the fund’s official website.</small></div>';
   return `<article class="card">
     <div class="card-top"><div><h3>${escapeHtml(product.productName)}${escapeHtml(stage)}</h3><p class="fund">${escapeHtml(product.rseName)}</p></div><div class="score" style="--score:${product.matchScore}"><span>${product.matchScore}<small>/100</small></span></div></div>
     <div class="metrics"><div class="metric"><strong>${pct(product.growthAllocationPct)}</strong><span>Growth assets</span></div><div class="metric"><strong>${aud(product.comparisonFee.annualFee)}</strong><span>Est. annual fee · ${pct(product.comparisonFee.effectivePct)}</span></div><div class="metric"><strong>${pct(product.returns[selected.horizon].netReturn50kPct)}</strong><span>Net return · ${selected.horizon}</span></div></div>
-    <details class="breakdown"><summary>View fee calculation and score explanation</summary>${explanations(product,selected)}</details>${flag}
+    <details class="breakdown"><summary>View fee calculation and score explanation</summary>${explanations(product,selected)}</details>${pdsAction}${flag}
   </article>`;
 }
 
