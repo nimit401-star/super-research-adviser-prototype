@@ -1,0 +1,22 @@
+name: Verify adviser prototype
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Test ingestion contract
+        run: python -m unittest discover -s tests -v
+      - name: Test Research Match Score contract
+        run: node tests/score.test.mjs
