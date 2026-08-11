@@ -63,7 +63,3 @@ jobs:
             - Changed product records
           branch: data/apra-mysuper-refresh
           delete-branch: true
-          body: |
-            Automated APRA refresh. Review `public/data/validation.json`, source metadata and changed product records before merging.
-          branch: data/apra-mysuper-refresh
-          delete-branch: true
