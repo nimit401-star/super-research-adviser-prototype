@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Visual-first APRA MySuper research prototype for advisers." />
+    <title>Super Research | Adviser prototype</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#">Super Research <span>V0.1</span></a>
+      <nav aria-label="Primary">
+        <a class="active" href="#research">Research</a>
+        <a href="#results">Results</a>
+        <a href="#methodology">Methodology</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="research">
+        <p class="eyebrow">Adviser research workspace</p>
+        <h1>Turn research criteria into a clear MySuper shortlist.</h1>
+        <p class="lede">Explore APRA data using transparent, adjustable criteria. Results are research matches—not product recommendations.</p>
+
+        <form class="research-panel" id="research-form">
+          <fieldset>
+            <legend>1. Growth preference</legend>
+            <div class="choice-grid" id="growth-options">
+              <label><input type="radio" name="growth" value="20,40" /><span>Conservative<small>20–40% growth</small></span></label>
+              <label><input type="radio" name="growth" value="40,70" /><span>Balanced<small>40–70% growth</small></span></label>
+              <label><input type="radio" name="growth" value="70,90" checked /><span>Growth<small>70–90% growth</small></span></label>
+              <label><input type="radio" name="growth" value="90,100" /><span>High growth<small>90–100% growth</small></span></label>
+            </div>
+          </fieldset>
+
+          <div class="field-row">
+            <label>2. Account balance
+              <select id="balance">
+                <option value="10k">$10,000</option>
+                <option value="25k">$25,000</option>
+                <option value="50k" selected>$50,000</option>
+                <option value="100k">$100,000</option>
+                <option value="250k">$250,000</option>
+              </select>
+            </label>
+            <label>3. Return period
+              <select id="horizon">
+                <option value="3y">3 years</option>
+                <option value="5y">5 years</option>
+                <option value="7y">7 years</option>
+                <option value="10y" selected>10 years</option>
+              </select>
+            </label>
+          </div>
+          <button type="submit">Find research matches <span aria-hidden="true">→</span></button>
+        </form>
+      </section>
+
+      <section class="results" id="results" aria-live="polite">
+        <div class="section-heading">
+          <div><p class="eyebrow">Research matches</p><h2 id="results-title">Loading APRA products…</h2></div>
+          <div class="data-badge"><span></span><strong>APRA data</strong><small id="reporting-date">Loading</small></div>
+        </div>
+        <p class="results-context" id="results-context"></p>
+        <div class="card-grid" id="result-cards"></div>
+        <button class="secondary" id="show-more" type="button" hidden>Show 6 more</button>
+      </section>
+
+      <section class="methodology" id="methodology">
+        <p class="eyebrow">Transparent by design</p>
+        <h2>How the Research Match Score works</h2>
+        <div class="score-key">
+          <div><strong>35</strong><span>Growth-range fit</span></div>
+          <div><strong>25</strong><span>Fee efficiency</span></div>
+          <div><strong>25</strong><span>Long-term net return</span></div>
+          <div><strong>10</strong><span>APRA performance test</span></div>
+          <div><strong>5</strong><span>Data completeness</span></div>
+        </div>
+        <p>Fees and returns are ranked against products with the required data for the selected balance and period. Past performance is not a reliable indicator of future performance. APRA data does not cover every suitability factor, including insurance, features and service quality.</p>
+      </section>
+    </main>
+    <footer>Prototype for adviser research only · No client information is collected or stored.</footer>
+    <script type="module" src="src/app.js"></script>
+  </body>
+</html>
