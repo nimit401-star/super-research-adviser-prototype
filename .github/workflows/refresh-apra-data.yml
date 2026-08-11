@@ -10,10 +10,13 @@ permissions:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -32,8 +35,11 @@ jobs:
         run: |
           python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
           import json
-          report = json.load(open('public/data/validation.json'))
-          print('# APRA ingestion validation')
+
+          with open("public/data/validation.json", encoding="utf-8") as file:
+              report = json.load(file)
+
+          print("# APRA ingestion validation")
           print(f"- Status: **{report['status'].upper()}**")
           print(f"- Source rows: {report['sourceRowCount']}")
           print(f"- Accepted records: {report['acceptedRecordCount']}")
@@ -44,10 +50,19 @@ jobs:
           PY
 
       - name: Open reviewed data-refresh pull request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "data: refresh APRA MySuper dataset"
           title: "Data refresh: APRA MySuper CPPP"
+          body: |
+            Automated APRA data refresh.
+
+            Review the following before merging:
+            - `public/data/validation.json`
+            - Source metadata
+            - Changed product records
+          branch: data/apra-mysuper-refresh
+          delete-branch: true
           body: |
             Automated APRA refresh. Review `public/data/validation.json`, source metadata and changed product records before merging.
           branch: data/apra-mysuper-refresh
