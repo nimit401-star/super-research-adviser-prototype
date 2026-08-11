@@ -22,7 +22,8 @@ fieldset { padding:0; margin:0 0 22px; border:0; } legend,.field-row label { mar
 .choice-grid input:checked+span { border-color:var(--green); background:var(--mint); box-shadow:inset 0 0 0 1px var(--green); }
 .field-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 .field-row label { display:flex; flex-direction:column; gap:8px; }
-select { appearance:none; width:100%; padding:14px; border:1px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); font:inherit; }
+select,.money-input { appearance:none; width:100%; border:1px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); font:inherit; }
+select { padding:14px; }.money-input { display:flex; align-items:center; padding-left:14px; }.money-input span { color:var(--muted); }.money-input input { width:100%; padding:14px 14px 14px 5px; border:0; outline:0; background:transparent; color:var(--ink); font:inherit; }.field-row label>small { color:var(--muted); font-size:10px; font-weight:500; }
 button { border:0; border-radius:10px; padding:15px 20px; background:var(--green); color:white; font:inherit; font-weight:750; cursor:pointer; }
 button span { padding-left:14px; }
 .results { padding:76px max(5vw,0px); }
@@ -41,7 +42,7 @@ h2 { margin:0; font-size:clamp(28px,3vw,42px); letter-spacing:-.04em; }
 .score:before { content:""; position:absolute; inset:5px; border-radius:50%; background:#fff; }.score>* { position:relative; }.score small { font-size:9px; color:var(--muted); }
 .metrics { display:grid; grid-template-columns:repeat(3,1fr); margin:22px 0 16px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
 .metric { padding:14px 6px; }.metric+.metric { border-left:1px solid var(--line); }.metric strong,.metric span { display:block; }.metric strong { font-size:16px; }.metric span { margin-top:4px; color:var(--muted); font-size:10px; }
-.breakdown summary { cursor:pointer; color:var(--green); font-size:12px; font-weight:750; }.breakdown ul { list-style:none; padding:10px 0 0; margin:0; }.breakdown li { display:flex; justify-content:space-between; padding:5px 0; color:var(--muted); font-size:11px; }
+.breakdown summary { cursor:pointer; color:var(--green); font-size:12px; font-weight:750; }.breakdown[open] summary { margin-bottom:14px; }.fee-detail,.score-detail { padding:14px; border-radius:10px; background:#f5f8f5; }.fee-detail h4,.score-detail h4 { margin:0 0 10px; font-size:12px; }.fee-total { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }.fee-total strong { font-size:21px; }.fee-total span,.fee-detail p,.fee-detail small { color:var(--muted); font-size:10px; }.fee-detail code { white-space:normal; color:var(--ink); }.score-detail { margin-top:10px; }.score-row { display:flex; justify-content:space-between; gap:12px; padding:10px 0; border-top:1px solid var(--line); }.score-row>div { display:flex; flex-direction:column; gap:4px; }.score-row strong { font-size:11px; }.score-row span { color:var(--muted); font-size:10px; line-height:1.4; }.score-row b { flex:0 0 auto; font-size:14px; }.score-row b small { color:var(--muted); font-size:9px; }
 .flag { display:inline-block; margin-top:12px; padding:5px 8px; border-radius:6px; background:#f6eedc; color:#7a5615; font-size:10px; font-weight:700; }
 .secondary { display:block; margin:24px auto 0; color:var(--green); background:white; border:1px solid var(--green); }
 .methodology { margin-bottom:76px; padding:46px; border-radius:22px; color:white; background:var(--ink); }.methodology .eyebrow { color:var(--lime); }.methodology p:last-child { max-width:880px; color:#b9c4bf; line-height:1.6; }
