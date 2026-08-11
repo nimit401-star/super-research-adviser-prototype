@@ -1,0 +1,143 @@
+{
+  "status": "pass",
+  "sourceRowCount": 384,
+  "acceptedRecordCount": 360,
+  "scorableRecordCount": 317,
+  "rejectedRecordCount": 0,
+  "excludedAggregateRowCount": 24,
+  "headerCount": 43,
+  "missingRequiredHeaders": [],
+  "additionalSourceHeaders": [
+    "10_year_net_return_50_000_rep_member_p_a",
+    "10_year_nir_relative_to_saa_benchmark_portfolio_p_a",
+    "10_year_nir_relative_to_simple_reference_portfolio_p_a",
+    "3_year_net_return_50_000_rep_member_p_a",
+    "3_year_nir_relative_to_saa_benchmark_portfolio_p_a",
+    "3_year_nir_relative_to_simple_reference_portfolio_p_a",
+    "5_year_net_return_50_000_rep_member_p_a",
+    "5_year_nir_relative_to_saa_benchmark_portfolio_p_a",
+    "5_year_nir_relative_to_simple_reference_portfolio_p_a",
+    "7_year_net_return_50_000_rep_member_p_a",
+    "7_year_nir_relative_to_saa_benchmark_portfolio_p_a",
+    "7_year_nir_relative_to_simple_reference_portfolio_p_a",
+    "actual_return_minus_benchmark_return",
+    "administration_fees_and_costs_charged_100_000_account_balance",
+    "administration_fees_and_costs_charged_10_000_account_balance",
+    "administration_fees_and_costs_charged_250_000_account_balance",
+    "administration_fees_and_costs_charged_25_000_account_balance",
+    "administration_fees_and_costs_charged_50_000_account_balance",
+    "member_accounts",
+    "member_assets_000",
+    "product_category",
+    "proportion_of_total_assets_in_mysuper",
+    "public_offer_status",
+    "relevant_benchmark_representative_administration_fees_and_expenses_brafe",
+    "representative_administration_fees_and_expenses_rafe"
+  ],
+  "duplicateProductIds": [],
+  "criticalNullRates": {
+    "growthAllocationPct": 0.0,
+    "totalFee50kPct": 0.0,
+    "return3yPct": 0.1194
+  },
+  "gateFailures": [],
+  "rejectedRows": [],
+  "excludedRows": [
+    {
+      "row": 5,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 23,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 34,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 48,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 62,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 74,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 84,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 88,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 137,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 157,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 177,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 197,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 218,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 234,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 241,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 248,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 257,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 271,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 279,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 290,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 294,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 300,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 344,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    },
+    {
+      "row": 381,
+      "reason": "aggregate lifecycle product row; stage rows retained"
+    }
+  ]
+}

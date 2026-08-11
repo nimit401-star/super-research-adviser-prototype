@@ -1,0 +1,15 @@
+{
+  "dataset_id": "apra-mysuper-cppp-2025",
+  "source_name": "APRA 2025 CPPP publication - MySuper",
+  "source_page_url": "https://www.apra.gov.au/mysuper-product-performance",
+  "download_url": "https://www.apra.gov.au/system/files/2026-01/2025%20CPPP%20publication%20-%20MySuper_CPPP.csv",
+  "reporting_date": "2025-06-30",
+  "published_date": "2026-01-19",
+  "schema_version": "0.1.0",
+  "minimum_record_count": 40,
+  "critical_null_rate_limits": {
+    "growthAllocationPct": 0.05,
+    "totalFee50kPct": 0.05,
+    "return3yPct": 0.25
+  }
+}

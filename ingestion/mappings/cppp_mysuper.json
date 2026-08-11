@@ -1,0 +1,31 @@
+{
+  "identity": {
+    "rseLicensee": "rse_licensee",
+    "rseName": "rse_name",
+    "productName": "mysuper_product_name",
+    "strategyType": "single_strategy_lifecycle_indicator",
+    "lifecycleStageName": "lifecycle_stage_name"
+  },
+  "numeric": {
+    "memberAssets": "member_assets_000",
+    "memberAccounts": "member_accounts",
+    "growthAllocationPct": "strategic_growth_asset_allocation",
+    "performanceTestMeasurePct": "performance_test_measure",
+    "lookbackYears": "lookback_period_years"
+  },
+  "returns": {
+    "3y": ["3_year_net_investment_return_nir_p_a", "3_year_net_return_50_000_rep_member_p_a"],
+    "5y": ["5_year_net_investment_return_nir_p_a", "5_year_net_return_50_000_rep_member_p_a"],
+    "7y": ["7_year_net_investment_return_nir_p_a", "7_year_net_return_50_000_rep_member_p_a"],
+    "10y": ["10_year_net_investment_return_nir_p_a", "10_year_net_return_50_000_rep_member_p_a"]
+  },
+  "fees": {
+    "10k": ["administration_fees_and_costs_charged_10_000_account_balance", "total_fees_and_costs_charged_10_000_account_balance"],
+    "25k": ["administration_fees_and_costs_charged_25_000_account_balance", "total_fees_and_costs_charged_25_000_account_balance"],
+    "50k": ["administration_fees_and_costs_charged_50_000_account_balance", "total_fees_and_costs_charged_50_000_account_balance"],
+    "100k": ["administration_fees_and_costs_charged_100_000_account_balance", "total_fees_and_costs_charged_100_000_account_balance"],
+    "250k": ["administration_fees_and_costs_charged_250_000_account_balance", "total_fees_and_costs_charged_250_000_account_balance"]
+  },
+  "performanceTestResult": "pass_fail_indicator"
+}
+
