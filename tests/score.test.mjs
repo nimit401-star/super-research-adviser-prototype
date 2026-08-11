@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
-import { scoreProducts, WEIGHTS } from "../src/score.js";
+import { calculateFee, scoreProducts, WEIGHTS } from "../src/score.js";
 
-const product=(name,growth,fee,ret,result="Pass",measure=.2)=>({productName:name,growthAllocationPct:growth,fees:{"50k":{totalPct:fee}},returns:{"10y":{netReturn50kPct:ret}},performanceTestResult:result,performanceTestMeasurePct:measure});
-const criteria={growthMin:70,growthMax:90,balance:"50k",horizon:"10y"};
+const product=(name,growth,fee,ret,result="Pass",measure=.2)=>({productName:name,growthAllocationPct:growth,fees:{"10k":{totalPct:fee},"25k":{totalPct:fee},"50k":{totalPct:fee},"100k":{totalPct:fee},"250k":{totalPct:fee}},returns:{"10y":{netReturn50kPct:ret}},performanceTestResult:result,performanceTestMeasurePct:measure});
+const criteria={growthMin:70,growthMax:90,amount:50000,horizon:"10y"};
 const scored=scoreProducts([product("A",80,.5,8),product("B",60,1,6,"Fail")],criteria);
 
 assert.equal(Object.values(WEIGHTS).reduce((a,b)=>a+b,0),100);
@@ -12,4 +12,7 @@ assert.equal(scored[0].scoreBreakdown.performanceTest,10);
 assert.equal(scored[1].scoreBreakdown.performanceTest,0);
 assert.ok(scored.every(item=>item.matchScore>=0&&item.matchScore<=100));
 assert.equal(scoreProducts([product("Missing",80,null,8)],criteria).length,0);
+assert.equal(calculateFee(product("Fee",80,1,8),50000).annualFee,500);
+assert.equal(calculateFee(product("Fee",80,1,8),75000).annualFee,750);
+assert.equal(calculateFee(product("Fee",80,1,8),75000).estimated,true);
 console.log("Research Match Score contract tests passed");
