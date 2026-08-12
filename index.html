@@ -103,10 +103,11 @@
       <section class="results" id="results" aria-live="polite">
         <div class="section-heading">
           <div><p class="eyebrow">Research matches</p><h2 id="results-title">Loading APRA products…</h2></div>
-          <div class="data-badge"><span></span><strong>APRA data</strong><small id="reporting-date">Loading</small></div>
+          <div class="results-actions"><button class="print-summary" id="print-summary" type="button">Print research summary</button><div class="data-badge"><span></span><strong>APRA data</strong><small id="reporting-date">Loading</small></div></div>
         </div>
         <p class="results-context" id="results-context"></p>
-        <p class="universe-note"><strong>Coverage:</strong> the current-fund directory includes broader APRA-regulated products. Quantitative ranking remains limited to products with comparable fees, returns and strategy data.</p>
+        <p class="universe-note"><strong>Coverage:</strong> this demo quantitatively compares accumulation-stage MySuper records and validated diversified Choice options. Defined-benefit, retirement-income, single-sector and incomplete products remain searchable but unranked.</p>
+        <aside class="research-warnings" aria-label="Research limitations"><strong>Adviser verification required</strong><span>Review the exact product pathway, current PDS/investment guide/TMD, eligibility, insurance, tax and switching consequences before advice is finalised. Past performance is not a reliable indicator of future performance.</span></aside>
         <div class="client-summary" id="client-summary"></div>
         <section class="current-comparison" id="current-comparison" hidden></section>
         <section class="result-universe" aria-labelledby="mysuper-title">
@@ -160,7 +161,7 @@
         <p class="source-note">Source links open official publisher websites. Dataset and methodology dates should be reviewed whenever the prototype data is refreshed.</p>
       </section>
     </main>
-    <footer>Prototype for adviser research only · No client information is collected or stored.</footer>
+    <footer>Accumulation research prototype · Adviser use only · No personal advice · No client information is collected or stored.</footer>
     <script type="module" src="src/app.js"></script>
   </body>
 </html>
