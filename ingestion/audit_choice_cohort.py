@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit record-level eligibility for a diversified Choice option cohort."""
+"""Audit record-level eligibility for diversified Choice peer groups."""
 
 import argparse
 import csv
@@ -13,6 +13,15 @@ IDENTITY_FIELDS = (
     "Product Identifier",
     "Investment Menu Identifier",
     "Investment Option Identifier",
+)
+
+PEER_GROUPS = (
+    (0.0, 0.2, "defensive"),
+    (0.2, 0.4, "conservative"),
+    (0.4, 0.6, "balanced"),
+    (0.6, 0.75, "growth"),
+    (0.75, 0.9, "high-growth"),
+    (0.9, 1.0, "very-high-growth"),
 )
 
 
@@ -37,6 +46,13 @@ def field(row, aliases, name):
     return clean(row.get(source)) if source else None
 
 
+def decimal(value):
+    try:
+        return float(value) if value is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
 def latest_period(rows, aliases):
     periods = [field(row, aliases, "Period") for row in rows]
     periods = [period for period in periods if period]
@@ -54,6 +70,16 @@ def is_choice_accumulation(row, aliases):
 def is_diversified(row, aliases):
     category = (field(row, aliases, "Investment Option Category") or "").casefold()
     return "multi-sector" in category or "multi sector" in category
+
+
+def peer_group(growth_weight):
+    """Return a stable peer group for APRA's decimal growth-asset weighting."""
+    if growth_weight is None or growth_weight <= 0 or growth_weight > 1:
+        return None
+    for lower, upper, name in PEER_GROUPS:
+        if lower < growth_weight <= upper:
+            return name
+    return None
 
 
 def unique_saa_rows(directory, reporting_date):
@@ -106,21 +132,34 @@ def audit_choice_cohort(directory):
             continue
 
         saa_row, saa_aliases, _ = saa_matches[0]
-        return_3y = field(row, aliases, "Three-year net return (rep member) - Annualised")
-        return_5y = field(row, aliases, "Five-year net return (rep member) - Annualised")
-        total_fee = field(row, aliases, "Total Fees and Costs (rep member)")
-        growth_weight = field(saa_row, saa_aliases, "Growth asset weighting")
+        return_3y = decimal(field(row, aliases, "Three-year net return (rep member) - Annualised"))
+        return_5y = decimal(field(row, aliases, "Five-year net return (rep member) - Annualised"))
+        total_fee = decimal(field(row, aliases, "Total Fees and Costs (rep member)"))
+        growth_weight = decimal(field(saa_row, saa_aliases, "Growth asset weighting"))
         growth_band = field(saa_row, saa_aliases, "Growth asset band")
 
         missing_metrics = []
-        if not (return_3y or return_5y):
-            missing_metrics.append("multiPeriodReturn")
-        if not total_fee:
+        if return_3y is None:
+            missing_metrics.append("return3y")
+        if return_5y is None:
+            missing_metrics.append("return5y")
+        if total_fee is None:
             missing_metrics.append("representativeMemberFee")
-        if not (growth_weight or growth_band):
+        if growth_weight is None:
             missing_metrics.append("growthAllocation")
         if missing_metrics:
             exclusions["missing:" + ",".join(missing_metrics)] += 1
+            continue
+
+        if not (-1 <= return_3y <= 1 and -1 <= return_5y <= 1):
+            exclusions["invalidReturnDecimal"] += 1
+            continue
+        if not (0 <= total_fee <= 0.1):
+            exclusions["invalidFeeDecimal"] += 1
+            continue
+        group = peer_group(growth_weight)
+        if group is None:
+            exclusions["invalidOrZeroGrowthAllocation"] += 1
             continue
 
         candidates.append({
@@ -133,20 +172,24 @@ def audit_choice_cohort(directory):
             "optionName": field(row, aliases, "Investment Option / Lifecycle Stage Name"),
             "optionType": field(row, aliases, "Investment Option Type"),
             "optionCategory": field(row, aliases, "Investment Option Category"),
-            "return3yPct": return_3y,
-            "return5yPct": return_5y,
-            "representativeMemberFee": total_fee,
-            "growthAllocationPct": growth_weight,
+            "return3yDecimal": return_3y,
+            "return5yDecimal": return_5y,
+            "representativeMemberFeeDecimal": total_fee,
+            "growthAllocationDecimal": growth_weight,
             "growthBand": growth_band,
+            "peerGroup": group,
         })
 
-    duplicate_keys = [
-        key for key, count in Counter(
-            (item["productId"], item["menuId"], item["optionId"]) for item in candidates
-        ).items() if count > 1
-    ]
-    if duplicate_keys:
-        raise ValueError(f"duplicate eligible Choice pathways: {duplicate_keys[:5]}")
+    pathway_counts = Counter(
+        (item["productId"], item["menuId"], item["optionId"]) for item in candidates
+    )
+    duplicate_pathways = [key for key, count in pathway_counts.items() if count > 1]
+    if duplicate_pathways:
+        raise ValueError(f"duplicate eligible Choice pathways: {duplicate_pathways[:5]}")
+
+    option_counts = Counter(item["optionId"] for item in candidates)
+    shared_option_ids = sum(1 for count in option_counts.values() if count > 1)
+    peer_group_counts = Counter(item["peerGroup"] for item in candidates)
 
     candidates.sort(key=lambda item: (
         (item["rseName"] or "").casefold(),
@@ -155,14 +198,21 @@ def audit_choice_cohort(directory):
         item["optionId"],
     ))
     return {
-        "datasetId": "apra-choice-diversified-cohort-audit",
+        "datasetId": "apra-choice-diversified-peer-group-audit",
         "reportingDate": reporting_date,
         "sourceTable": "QSPS Table 5a.csv",
         "currentPerformanceRowCount": len(current_rows),
         "eligibleRecordCount": len(candidates),
+        "peerGroupCounts": dict(sorted(peer_group_counts.items())),
+        "sharedOptionIdCount": shared_option_ids,
         "exclusionCounts": dict(sorted(exclusions.items())),
+        "units": {
+            "returns": "decimal annualised net return; multiply by 100 for display percent",
+            "representativeMemberFee": "APRA decimal rate for its representative-member basis; not yet balance-adjusted",
+            "growthAllocation": "decimal allocation; multiply by 100 for display percent",
+        },
         "rankingEnabled": False,
-        "reason": "Choice ranking remains disabled until this record-level cohort is reviewed and its fee basis is aligned with the adviser balance comparison.",
+        "reason": "Choice ranking remains disabled until the representative-member fee basis is aligned with the adviser-selected balance and shared option pathways are presented without duplication.",
         "records": candidates,
     }
 
@@ -177,7 +227,8 @@ def main():
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(json.dumps({key: report[key] for key in (
-        "reportingDate", "currentPerformanceRowCount", "eligibleRecordCount", "rankingEnabled"
+        "reportingDate", "currentPerformanceRowCount", "eligibleRecordCount",
+        "peerGroupCounts", "sharedOptionIdCount", "rankingEnabled"
     )}, indent=2))
 
 
