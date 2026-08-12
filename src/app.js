@@ -1,7 +1,7 @@
 import { scoreProducts } from "./score.js";
 import { findPdsLink } from "./pds.js";
 import { calculateClientContext } from "./client-context.js";
-import { buildComparison } from "./current-comparison.js";
+import { buildComparison, resolveCurrentFundValue } from "./current-comparison.js";
 
 const cards = document.querySelector("#result-cards");
 const form = document.querySelector("#research-form");
@@ -11,7 +11,10 @@ const showMore = document.querySelector("#show-more");
 const clientSummary = document.querySelector("#client-summary");
 const contributionPreview = document.querySelector("#contribution-preview");
 const comparisonPanel = document.querySelector("#current-comparison");
-const currentProductOptions = document.querySelector("#current-product-options");
+const currentFundSelect = document.querySelector("#current-fund");
+const manualCurrentFundField = document.querySelector("#manual-current-fund-field");
+const manualCurrentFundInput = document.querySelector("#manual-current-fund");
+const MANUAL_CURRENT_FUND = "__manual__";
 let products = [], visible = 6, current = [];
 
 const pct = value => value == null ? "—" : `${value.toFixed(2).replace(/\.00$/,"")}%`;
@@ -23,7 +26,7 @@ const label = key => ({growthFit:"Growth fit",feeEfficiency:"Fee efficiency",net
 function clientInputs() {
   return {
     employmentStatus:document.querySelector("#employment-status").value,
-    currentFund:document.querySelector("#current-fund").value.trim(),
+    currentFund:resolveCurrentFundValue(currentFundSelect.value, manualCurrentFundInput.value, MANUAL_CURRENT_FUND),
     age:Number(document.querySelector("#client-age").value),
     retirementAge:Number(document.querySelector("#retirement-age").value),
     superableEarnings:Number(document.querySelector("#salary").value),
@@ -99,8 +102,35 @@ function renderCurrentComparison(client, selected) {
 }
 
 function populateCurrentProductOptions() {
-  const values=[...new Set(products.map(product=>product.lifecycleStageName?`${product.productName} — ${product.lifecycleStageName}`:product.productName))].sort();
-  currentProductOptions.innerHTML=values.map(value=>`<option value="${escapeHtml(value)}"></option>`).join("");
+  const grouped=new Map();
+  [...products].sort((a,b)=>a.rseName.localeCompare(b.rseName)||a.productName.localeCompare(b.productName)||(a.lifecycleStageName??"").localeCompare(b.lifecycleStageName??"")).forEach(product=>{
+    const value=product.lifecycleStageName?`${product.productName} — ${product.lifecycleStageName}`:product.productName;
+    if(!grouped.has(product.rseName)) grouped.set(product.rseName,new Map());
+    grouped.get(product.rseName).set(value,value);
+  });
+  currentFundSelect.innerHTML='<option value="">Select the current fund/product</option>';
+  grouped.forEach((options,fundName)=>{
+    const group=document.createElement("optgroup");
+    group.label=fundName;
+    options.forEach((text,value)=>{
+      const option=document.createElement("option");
+      option.value=value;
+      option.textContent=text;
+      group.append(option);
+    });
+    currentFundSelect.append(group);
+  });
+  const manual=document.createElement("option");
+  manual.value=MANUAL_CURRENT_FUND;
+  manual.textContent="Fund/product not listed — enter manually";
+  currentFundSelect.append(manual);
+}
+
+function updateCurrentFundMode() {
+  const isManual=currentFundSelect.value===MANUAL_CURRENT_FUND;
+  manualCurrentFundField.hidden=!isManual;
+  manualCurrentFundInput.required=isManual;
+  if(!isManual) manualCurrentFundInput.value="";
 }
 
 function render(reset=true) {
@@ -115,6 +145,10 @@ function render(reset=true) {
   showMore.hidden=visible>=current.length;
 }
 
+currentFundSelect.addEventListener("change", () => {
+  updateCurrentFundMode();
+  updateContributionPreview();
+});
 form.addEventListener("input", updateContributionPreview);
 updateContributionPreview();
 form.addEventListener("submit", event => { event.preventDefault(); render(); document.querySelector("#results").scrollIntoView({behavior:"smooth"}); });
@@ -125,5 +159,6 @@ try {
   if(!productResponse.ok||!metadataResponse.ok) throw new Error("Research data could not be loaded.");
   products=await productResponse.json(); const metadata=await metadataResponse.json();
   populateCurrentProductOptions();
+  updateCurrentFundMode();
   document.querySelector("#reporting-date").textContent=`Reporting date ${metadata.reportingDate}`; render();
 } catch(error) { title.textContent="Data unavailable"; cards.innerHTML=`<p class="error">${escapeHtml(error.message)} Please refresh or try again later.</p>`; }

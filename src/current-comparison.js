@@ -1,5 +1,9 @@
 const normalise = value => String(value ?? "").trim().toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
+export function resolveCurrentFundValue(selectedValue, manualValue, manualToken = "__manual__") {
+  return selectedValue === manualToken ? String(manualValue ?? "").trim() : String(selectedValue ?? "").trim();
+}
+
 export function findCurrentProduct(products, query) {
   const wanted = normalise(query);
   if (!wanted) return { status: "empty", product: null, candidates: [] };

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { findCurrentProduct, buildComparison } from "../src/current-comparison.js";
+import { findCurrentProduct, buildComparison, resolveCurrentFundValue } from "../src/current-comparison.js";
 
 const products = [
   { productId:"a", productName:"Alpha MySuper", rseName:"Alpha Super", lifecycleStageName:null },
@@ -14,6 +14,9 @@ assert.equal(findCurrentProduct(products,"alpha super").product.productId,"a");
 assert.equal(findCurrentProduct(products,"Beta Lifecycle").status,"ambiguous");
 assert.equal(findCurrentProduct(products,"Beta Lifecycle — Age 40").product.lifecycleStageName,"Age 40");
 assert.equal(findCurrentProduct(products,"Unknown Fund").status,"unmapped");
+assert.equal(resolveCurrentFundValue("Alpha MySuper",""),"Alpha MySuper");
+assert.equal(resolveCurrentFundValue("__manual__","  Legacy Corporate Fund  "),"Legacy Corporate Fund");
+assert.equal(resolveCurrentFundValue("",""),"");
 const comparison=buildComparison(products,scored,"Alpha Super",2);
 assert.equal(comparison.current.productId,"a");
 assert.equal(comparison.shortlist.length,2);
