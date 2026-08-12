@@ -12,10 +12,15 @@ const clientSummary = document.querySelector("#client-summary");
 const contributionPreview = document.querySelector("#contribution-preview");
 const comparisonPanel = document.querySelector("#current-comparison");
 const currentFundSelect = document.querySelector("#current-fund");
+const currentFundSearch = document.querySelector("#current-fund-search");
+const currentFundToggle = document.querySelector("#current-fund-toggle");
+const currentFundPanel = document.querySelector("#current-fund-options");
+const currentFundList = document.querySelector("#current-fund-list");
+const currentFundStatus = document.querySelector("#current-fund-status");
 const manualCurrentFundField = document.querySelector("#manual-current-fund-field");
 const manualCurrentFundInput = document.querySelector("#manual-current-fund");
 const MANUAL_CURRENT_FUND = "__manual__";
-let products = [], visible = 6, current = [];
+let products = [], visible = 6, current = [], currentProductOptions = [];
 
 const pct = value => value == null ? "—" : `${value.toFixed(2).replace(/\.00$/,"")}%`;
 const aud = value => value == null ? "—" : new Intl.NumberFormat("en-AU",{style:"currency",currency:"AUD",maximumFractionDigits:2}).format(value);
@@ -101,29 +106,76 @@ function renderCurrentComparison(client, selected) {
   comparisonPanel.innerHTML=`<div class="comparison-heading"><div><p class="eyebrow">Stay versus shortlist</p><h2>Compare the current position with leading research matches</h2></div><span>Same balance, return period and scoring rules</span></div><div class="comparison-grid">${comparisonColumn(comparison.current,selected,"Current position")}${comparison.shortlist.map((product,index)=>comparisonColumn(product,selected,`Research match ${index+1}`)).join("")}</div><p class="comparison-note">This is a like-for-like APRA data comparison only. Insurance, eligibility, investment-option features, tax and switching consequences still require adviser review.</p>`;
 }
 
+function productDisplayValue(product) {
+  return product.lifecycleStageName ? `${product.productName} — ${product.lifecycleStageName}` : product.productName;
+}
+
+function closeCurrentFundOptions() {
+  currentFundPanel.hidden=true;
+  currentFundSearch.setAttribute("aria-expanded","false");
+}
+
+function chooseCurrentFund(value, displayText=value) {
+  currentFundSelect.value=value;
+  currentFundSearch.value=displayText;
+  closeCurrentFundOptions();
+  updateCurrentFundMode();
+  updateContributionPreview();
+}
+
+function renderCurrentProductOptions(query="") {
+  const wanted=query.trim().toLowerCase();
+  const matches=currentProductOptions.filter(option =>
+    !wanted || option.searchText.includes(wanted)
+  );
+  const visibleMatches=matches.slice(0,80);
+  currentFundList.innerHTML="";
+  let activeFund="";
+  visibleMatches.forEach(option=>{
+    if(option.fundName!==activeFund) {
+      activeFund=option.fundName;
+      const heading=document.createElement("div");
+      heading.className="combobox-group";
+      heading.textContent=activeFund;
+      currentFundList.append(heading);
+    }
+    const button=document.createElement("button");
+    button.type="button";
+    button.className="combobox-option";
+    button.setAttribute("role","option");
+    button.dataset.value=option.value;
+    button.innerHTML=`<strong>${escapeHtml(option.productName)}</strong>${option.stageName?`<span>${escapeHtml(option.stageName)}</span>`:""}`;
+    button.addEventListener("click",()=>chooseCurrentFund(option.value,option.value));
+    currentFundList.append(button);
+  });
+  const manual=document.createElement("button");
+  manual.type="button";
+  manual.className="combobox-option manual-option";
+  manual.setAttribute("role","option");
+  manual.innerHTML="<strong>Fund/product not listed</strong><span>Enter the current product manually</span>";
+  manual.addEventListener("click",()=>chooseCurrentFund(MANUAL_CURRENT_FUND,"Fund/product not listed — enter manually"));
+  currentFundList.append(manual);
+  currentFundStatus.textContent=matches.length>80
+    ? `Showing 80 of ${matches.length} matches — type more to narrow the list`
+    : `${matches.length} matching product${matches.length===1?"":"s"}`;
+  currentFundPanel.hidden=false;
+  currentFundSearch.setAttribute("aria-expanded","true");
+}
+
 function populateCurrentProductOptions() {
-  const grouped=new Map();
+  const unique=new Map();
   [...products].sort((a,b)=>a.rseName.localeCompare(b.rseName)||a.productName.localeCompare(b.productName)||(a.lifecycleStageName??"").localeCompare(b.lifecycleStageName??"")).forEach(product=>{
-    const value=product.lifecycleStageName?`${product.productName} — ${product.lifecycleStageName}`:product.productName;
-    if(!grouped.has(product.rseName)) grouped.set(product.rseName,new Map());
-    grouped.get(product.rseName).set(value,value);
-  });
-  currentFundSelect.innerHTML='<option value="">Select the current fund/product</option>';
-  grouped.forEach((options,fundName)=>{
-    const group=document.createElement("optgroup");
-    group.label=fundName;
-    options.forEach((text,value)=>{
-      const option=document.createElement("option");
-      option.value=value;
-      option.textContent=text;
-      group.append(option);
+    const value=productDisplayValue(product);
+    const key=`${product.rseName}|${value}`;
+    if(!unique.has(key)) unique.set(key,{
+      value,
+      productName:product.productName,
+      stageName:product.lifecycleStageName??"",
+      fundName:product.rseName,
+      searchText:`${product.rseName} ${product.productName} ${product.lifecycleStageName??""}`.toLowerCase()
     });
-    currentFundSelect.append(group);
   });
-  const manual=document.createElement("option");
-  manual.value=MANUAL_CURRENT_FUND;
-  manual.textContent="Fund/product not listed — enter manually";
-  currentFundSelect.append(manual);
+  currentProductOptions=[...unique.values()];
 }
 
 function updateCurrentFundMode() {
@@ -145,9 +197,27 @@ function render(reset=true) {
   showMore.hidden=visible>=current.length;
 }
 
-currentFundSelect.addEventListener("change", () => {
+currentFundSearch.addEventListener("focus",()=>renderCurrentProductOptions(currentFundSearch.value));
+currentFundSearch.addEventListener("input",()=>{
+  currentFundSelect.value="";
   updateCurrentFundMode();
-  updateContributionPreview();
+  renderCurrentProductOptions(currentFundSearch.value);
+});
+currentFundSearch.addEventListener("keydown",event=>{
+  if(event.key==="Escape") closeCurrentFundOptions();
+  if(event.key==="Enter" && !currentFundPanel.hidden) {
+    event.preventDefault();
+    currentFundList.querySelector(".combobox-option")?.click();
+  }
+});
+currentFundToggle.addEventListener("click",()=>{
+  if(currentFundPanel.hidden) {
+    currentFundSearch.focus();
+    renderCurrentProductOptions(currentFundSearch.value);
+  } else closeCurrentFundOptions();
+});
+document.addEventListener("click",event=>{
+  if(!document.querySelector("#current-fund-combobox").contains(event.target)) closeCurrentFundOptions();
 });
 form.addEventListener("input", updateContributionPreview);
 updateContributionPreview();
