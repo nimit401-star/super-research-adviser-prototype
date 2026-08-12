@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   audit:
@@ -21,6 +21,8 @@ jobs:
           unzip -q /tmp/qsps-quantitative.zip -d /tmp/qsps-quantitative
       - name: Audit diversified Choice cohort
         run: python ingestion/audit_choice_cohort.py --input-dir /tmp/qsps-quantitative
+      - name: Publish reviewed ranking dataset
+        run: python ingestion/publish_choice_dataset.py
       - name: Run tests
         run: python -m unittest discover -s tests -v
       - name: Publish cohort summary
@@ -28,10 +30,11 @@ jobs:
           python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
           import json
           report = json.load(open("public/data/choice-cohort-audit.json", encoding="utf-8"))
-          print("# Diversified Choice fee-alignment audit")
+          dataset = json.load(open("public/data/choice-products.json", encoding="utf-8"))
+          print("# Diversified Choice ranking dataset")
           print(f"- Reporting date: **{report['reportingDate']}**")
           print(f"- Current Table 5a rows reviewed: **{report['currentPerformanceRowCount']:,}**")
-          print(f"- Fee-aligned peer records: **{report['eligibleRecordCount']:,}**")
+          print(f"- Fee-aligned peer records: **{dataset['recordCount']:,}**")
           print(f"- Representative-fee mismatches: **{report['representativeFeeMismatchCount']:,}**")
           print(f"- Source-reported zero-fee pathways: **{report['sourceReportedZeroFeeCount']:,}**")
           print(f"- Shared option IDs across product/menu pathways: **{report['sharedOptionIdCount']:,}**")
@@ -39,13 +42,27 @@ jobs:
           for name, count in report["peerGroupCounts"].items():
               print(f"  - {name}: **{count:,}**")
           print("- Fee formula: **fixed annual dollars + selected balance × variable annual rate**")
-          print("- Choice ranking enabled: **No**")
-          print("- Balance-aligned fees are validated; review the generated cohort before adviser-facing ranking integration.")
+          print("- Choice dataset publication: **Enabled**")
+          print("- Adviser ranking boundary: **same Choice growth peer group only**")
           PY
-      - name: Upload Choice cohort audit
+      - name: Upload Choice ranking dataset
         uses: actions/upload-artifact@v4
         with:
-          name: apra-diversified-choice-fee-audit
-          path: public/data/choice-cohort-audit.json
+          name: apra-diversified-choice-ranking-dataset
+          path: |
+            public/data/choice-cohort-audit.json
+            public/data/choice-products.json
           if-no-files-found: error
           retention-days: 14
+      - name: Commit refreshed Choice ranking data
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/choice-products.json
+          if git diff --cached --quiet; then
+            echo "Choice ranking dataset is already current."
+          else
+            git commit -m "Refresh APRA Choice ranking dataset"
+            git push
+          fi
