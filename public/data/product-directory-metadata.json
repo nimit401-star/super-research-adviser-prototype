@@ -1,0 +1,13 @@
+{
+  "datasetId": "apra-qsps-product-directory",
+  "sourceName": "APRA Quarterly Superannuation Product Statistics - Table 1a",
+  "sourceUrl": "https://www.apra.gov.au/news-and-publications/quarterly-superannuation-product-statistics",
+  "reportingDate": "2026-03-31",
+  "recordCount": 830,
+  "countsByProductType": {
+    "Choice Product": 667,
+    "Defined Benefit Product": 112,
+    "MySuper Product": 51
+  },
+  "schemaVersion": "1.0.0"
+}
