@@ -1,0 +1,48 @@
+name: Audit APRA Choice quantitative joins
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Download APRA QSPS quantitative tables
+        run: |
+          curl --fail --location --retry 3 --output /tmp/qsps-quantitative.zip "https://www.apra.gov.au/system/files/2026-06/QSPS%20March%202026%20CSV%20files%20-%20Table%204-11.zip"
+          mkdir -p /tmp/qsps-quantitative
+          unzip -q /tmp/qsps-quantitative.zip -d /tmp/qsps-quantitative
+      - name: Audit table and join contracts
+        run: python ingestion/audit_qsps_quantitative.py --input-dir /tmp/qsps-quantitative
+      - name: Run contract tests
+        run: python -m unittest discover -s tests -v
+      - name: Publish audit summary
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          report = json.load(open("public/data/qsps-quantitative-audit.json", encoding="utf-8"))
+          print("# APRA Choice quantitative join audit")
+          print(f"- Tables inspected: **{report['tableCount']}**")
+          print(f"- Tables exposing investment-option keys: **{report['optionJoinTableCount']}**")
+          print("- Choice ranking enabled: **No**")
+          print("- Review the captured headers and join keys before implementing quantitative scoring.")
+          PY
+      - name: Open reviewed audit pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          commit-message: "data: audit APRA Choice quantitative joins"
+          title: "Data audit: APRA Choice quantitative joins"
+          body: |
+            Automated contract inventory for APRA QSPS Tables 4-11.
+
+            This audit does not enable Choice ranking. Review table headers and investment-option join coverage before merging or implementing quantitative comparisons.
+          branch: data/apra-choice-join-audit
+          delete-branch: true
