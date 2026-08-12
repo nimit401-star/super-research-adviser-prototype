@@ -28,21 +28,24 @@ jobs:
           python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
           import json
           report = json.load(open("public/data/choice-cohort-audit.json", encoding="utf-8"))
-          print("# Diversified Choice peer-group audit")
+          print("# Diversified Choice fee-alignment audit")
           print(f"- Reporting date: **{report['reportingDate']}**")
           print(f"- Current Table 5a rows reviewed: **{report['currentPerformanceRowCount']:,}**")
-          print(f"- Records passing stricter validation: **{report['eligibleRecordCount']:,}**")
+          print(f"- Fee-aligned peer records: **{report['eligibleRecordCount']:,}**")
+          print(f"- Representative-fee mismatches: **{report['representativeFeeMismatchCount']:,}**")
+          print(f"- Source-reported zero-fee pathways: **{report['sourceReportedZeroFeeCount']:,}**")
           print(f"- Shared option IDs across product/menu pathways: **{report['sharedOptionIdCount']:,}**")
           print("- Peer groups:")
           for name, count in report["peerGroupCounts"].items():
               print(f"  - {name}: **{count:,}**")
+          print("- Fee formula: **fixed annual dollars + selected balance × variable annual rate**")
           print("- Choice ranking enabled: **No**")
-          print("- Ranking remains disabled until representative-member fees are aligned with the adviser-selected balance.")
+          print("- Balance-aligned fees are validated; review the generated cohort before adviser-facing ranking integration.")
           PY
       - name: Upload Choice cohort audit
         uses: actions/upload-artifact@v4
         with:
-          name: apra-diversified-choice-cohort-audit
+          name: apra-diversified-choice-fee-audit
           path: public/data/choice-cohort-audit.json
           if-no-files-found: error
           retention-days: 14
