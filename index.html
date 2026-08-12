@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Visual-first APRA MySuper research prototype for advisers." />
+    <meta name="description" content="Visual-first APRA superannuation research prototype for advisers." />
     <title>Super Research | Adviser prototype</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
@@ -20,7 +20,7 @@
     <main>
       <section class="hero" id="research">
         <p class="eyebrow">Adviser research workspace</p>
-        <h1>Turn research criteria into a clear MySuper shortlist.</h1>
+        <h1>Turn client context into a clearer super research starting point.</h1>
         <p class="lede">Explore APRA data using transparent, adjustable criteria. Results are research matches—not product recommendations.</p>
 
         <form class="research-panel" id="research-form">
@@ -43,7 +43,7 @@
                 </div>
               </div>
               <input id="current-fund" type="hidden" value="" />
-              <small>Search the available APRA products, or enter an unlisted product manually.</small>
+              <small>Search APRA's current MySuper, Choice and defined-benefit product directory, or enter an unlisted product manually.</small>
             </label>
             <label id="manual-current-fund-field" hidden>Fund/product name
               <input id="manual-current-fund" type="text" maxlength="160" autocomplete="off" placeholder="Enter the fund and product name" />
@@ -95,6 +95,7 @@
           <div class="data-badge"><span></span><strong>APRA data</strong><small id="reporting-date">Loading</small></div>
         </div>
         <p class="results-context" id="results-context"></p>
+        <p class="universe-note"><strong>Coverage:</strong> the current-fund directory includes broader APRA-regulated products. Quantitative ranking remains limited to products with comparable fees, returns and strategy data.</p>
         <div class="client-summary" id="client-summary"></div>
         <section class="current-comparison" id="current-comparison" hidden></section>
         <div class="card-grid" id="result-cards"></div>
