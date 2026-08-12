@@ -81,3 +81,16 @@ footer { padding:28px; text-align:center; border-top:1px solid var(--line); colo
 .client-summary { display:flex; flex-wrap:wrap; gap:10px; margin:-12px 0 28px; padding:14px; border:1px solid var(--line); border-radius:12px; background:white; }.client-summary span { color:var(--muted); font-size:11px; }.client-summary strong { color:var(--ink); }
 @media(max-width:850px){.fact-grid,.contribution-fields{grid-template-columns:1fr 1fr}.fact-find-heading{flex-direction:column}}
 @media(max-width:560px){.fact-grid,.contribution-fields{grid-template-columns:1fr}.fact-find{padding:18px}}
+
+.current-comparison{margin:1.5rem 0 2rem;padding:1.25rem;border:1px solid var(--line);border-radius:18px;background:#fff}
+.comparison-heading{display:flex;align-items:end;justify-content:space-between;gap:1rem;margin-bottom:1rem}
+.comparison-heading h2{margin:.15rem 0 0;font-size:1.35rem}.comparison-heading>span,.comparison-note{color:var(--muted);font-size:.82rem}
+.comparison-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem}
+.comparison-column{padding:1rem;border:1px solid var(--line);border-radius:14px;background:var(--paper)}
+.comparison-column:first-child{border:2px solid var(--ink)}.comparison-column>small{color:var(--accent-dark);font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.comparison-column h3{margin:.45rem 0 .2rem;font-size:1rem}.comparison-column>p{margin:0 0 .75rem;color:var(--muted);font-size:.8rem}
+.comparison-column dl{margin:0}.comparison-column dl div{display:flex;justify-content:space-between;gap:.5rem;padding:.5rem 0;border-top:1px solid var(--line)}
+.comparison-column dt{color:var(--muted);font-size:.76rem}.comparison-column dd{margin:0;font-size:.78rem;font-weight:800;text-align:right}
+.comparison-note{margin:.9rem 0 0}.comparison-message{display:flex;gap:.75rem;align-items:flex-start}.comparison-message strong{white-space:nowrap}.comparison-message span{color:var(--muted)}
+@media(max-width:900px){.comparison-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.comparison-heading,.comparison-message{display:block}.comparison-grid{grid-template-columns:1fr}.comparison-heading>span,.comparison-message span{display:block;margin-top:.4rem}}
