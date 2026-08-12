@@ -1,11 +1,14 @@
 import { scoreProducts } from "./score.js";
 import { findPdsLink } from "./pds.js";
+import { calculateClientContext } from "./client-context.js";
 
 const cards = document.querySelector("#result-cards");
 const form = document.querySelector("#research-form");
 const title = document.querySelector("#results-title");
 const context = document.querySelector("#results-context");
 const showMore = document.querySelector("#show-more");
+const clientSummary = document.querySelector("#client-summary");
+const contributionPreview = document.querySelector("#contribution-preview");
 let products = [], visible = 6, current = [];
 
 const pct = value => value == null ? "—" : `${value.toFixed(2).replace(/\.00$/,"")}%`;
@@ -13,6 +16,28 @@ const aud = value => value == null ? "—" : new Intl.NumberFormat("en-AU",{styl
 const number = value => new Intl.NumberFormat("en-AU").format(value);
 const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
 const label = key => ({growthFit:"Growth fit",feeEfficiency:"Fee efficiency",netReturn:"Net return",performanceTest:"APRA test",completeness:"Data completeness"}[key]);
+
+function clientInputs() {
+  return {
+    employmentStatus:document.querySelector("#employment-status").value,
+    currentFund:document.querySelector("#current-fund").value.trim(),
+    age:Number(document.querySelector("#client-age").value),
+    retirementAge:Number(document.querySelector("#retirement-age").value),
+    superableEarnings:Number(document.querySelector("#salary").value),
+    sgRate:Number(document.querySelector("#sg-rate").value),
+    salarySacrifice:Number(document.querySelector("#salary-sacrifice").value),
+    personalConcessional:Number(document.querySelector("#personal-concessional").value)
+  };
+}
+
+function updateContributionPreview() {
+  const client=calculateClientContext(clientInputs());
+  document.querySelector("#contribution-fields").hidden=!client.isWorking;
+  contributionPreview.innerHTML=client.isWorking
+    ? `<span>Employer SG <strong>${aud(client.employerSg)}</strong></span><span>Total concessional <strong>${aud(client.totalConcessional)}</strong></span><span>Years to retirement <strong>${client.yearsToRetirement}</strong></span><span class="${client.capStatus==="over"?"cap-warning":""}">${escapeHtml(client.capMessage)}</span>`
+    : `<span>No employer SG modelled for this employment status.</span><span>Years to retirement <strong>${client.yearsToRetirement}</strong></span>`;
+  return client;
+}
 
 function criteria() {
   const [growthMin,growthMax] = new FormData(form).get("growth").split(",").map(Number);
@@ -49,13 +74,17 @@ function renderCard(product, selected) {
 
 function render(reset=true) {
   if (reset) visible=6;
-  const selected=criteria(); current=scoreProducts(products,selected);
+  const selected=criteria(), client=updateContributionPreview(); current=scoreProducts(products,selected);
   title.textContent=`${current.length} comparable products`;
   context.textContent=`Ranked for ${selected.growthMin}–${selected.growthMax}% growth, ${aud(selected.amount)} comparison amount and ${selected.horizon.replace("y","-year")} net return. Showing research matches, not recommendations.`;
+  const currentFund=client.currentFund?`Current position: <strong>${escapeHtml(client.currentFund)}</strong>`:"Current fund not entered";
+  clientSummary.innerHTML=`<span>${currentFund}</span><span>Age <strong>${client.age}</strong> · retirement in <strong>${client.yearsToRetirement} years</strong></span>${client.isWorking?`<span>First-year employer SG <strong>${aud(client.employerSg)}</strong></span><span>Total concessional <strong>${aud(client.totalConcessional)}</strong></span>`:""}`;
   cards.innerHTML=current.slice(0,visible).map(product=>renderCard(product,selected)).join("");
   showMore.hidden=visible>=current.length;
 }
 
+form.addEventListener("input", updateContributionPreview);
+updateContributionPreview();
 form.addEventListener("submit", event => { event.preventDefault(); render(); document.querySelector("#results").scrollIntoView({behavior:"smooth"}); });
 showMore.addEventListener("click",()=>{visible+=6;render(false)});
 
