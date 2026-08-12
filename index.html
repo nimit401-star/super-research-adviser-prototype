@@ -31,7 +31,7 @@
           </div>
           <div class="fact-grid">
             <label>Employment status<select id="employment-status"><option value="employed" selected>Employed</option><option value="self-employed">Self-employed</option><option value="not-employed">Not currently employed</option><option value="retired">Retired</option></select></label>
-            <label>Current fund or product<input id="current-fund" type="text" maxlength="100" placeholder="Optional — enter current fund" /></label>
+            <label>Current fund or product<input id="current-fund" type="text" maxlength="160" list="current-product-options" autocomplete="off" placeholder="Search the exact APRA product" /><datalist id="current-product-options"></datalist></label>
             <label>Client age<input id="client-age" type="number" min="18" max="100" value="40" required /></label>
             <label>Expected retirement age<input id="retirement-age" type="number" min="18" max="100" value="67" required /></label>
           </div>
@@ -78,7 +78,7 @@
           <div class="data-badge"><span></span><strong>APRA data</strong><small id="reporting-date">Loading</small></div>
         </div>
         <p class="results-context" id="results-context"></p>
-        <div class="client-summary" id="client-summary"></div>
+        <div class="client-summary" id="client-summary"></div>\n        <section class="current-comparison" id="current-comparison" hidden></section>
         <div class="card-grid" id="result-cards"></div>
         <button class="secondary" id="show-more" type="button" hidden>Show 6 more</button>
       </section>
