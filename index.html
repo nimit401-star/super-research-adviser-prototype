@@ -31,11 +31,19 @@
           </div>
           <div class="fact-grid">
             <label>Employment status<select id="employment-status"><option value="employed" selected>Employed</option><option value="self-employed">Self-employed</option><option value="not-employed">Not currently employed</option><option value="retired">Retired</option></select></label>
-            <label>Current fund or product
-              <select id="current-fund">
-                <option value="">Select the current fund/product</option>
-              </select>
-              <small>Choose from available APRA products or select the manual-entry option.</small>
+            <label class="current-product-field">Current fund or product
+              <div class="product-combobox" id="current-fund-combobox">
+                <div class="combobox-control">
+                  <input id="current-fund-search" type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="current-fund-options" autocomplete="off" placeholder="Search fund or product" />
+                  <button id="current-fund-toggle" type="button" aria-label="Show fund and product options" tabindex="-1">⌄</button>
+                </div>
+                <div class="combobox-panel" id="current-fund-options" hidden>
+                  <div class="combobox-status" id="current-fund-status"></div>
+                  <div class="combobox-list" id="current-fund-list" role="listbox"></div>
+                </div>
+              </div>
+              <input id="current-fund" type="hidden" value="" />
+              <small>Search the available APRA products, or enter an unlisted product manually.</small>
             </label>
             <label id="manual-current-fund-field" hidden>Fund/product name
               <input id="manual-current-fund" type="text" maxlength="160" autocomplete="off" placeholder="Enter the fund and product name" />

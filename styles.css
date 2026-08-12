@@ -97,3 +97,20 @@ footer { padding:28px; text-align:center; border-top:1px solid var(--line); colo
 .comparison-note{margin:.9rem 0 0}.comparison-message{display:flex;gap:.75rem;align-items:flex-start}.comparison-message strong{white-space:nowrap}.comparison-message span{color:var(--muted)}
 @media(max-width:900px){.comparison-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){.comparison-heading,.comparison-message{display:block}.comparison-grid{grid-template-columns:1fr}.comparison-heading>span,.comparison-message span{display:block;margin-top:.4rem}}
+
+.current-product-field { position:relative; min-width:0; }
+.product-combobox { position:relative; }
+.combobox-control { display:flex; align-items:center; width:100%; border:1px solid var(--line); border-radius:10px; background:#fff; overflow:hidden; }
+.combobox-control:focus-within { border-color:var(--green); box-shadow:0 0 0 2px rgba(19,92,69,.12); }
+.fact-grid .combobox-control input { min-width:0; width:100%; padding:14px; border:0; outline:0; background:transparent; color:var(--ink); font:inherit; }
+.combobox-control button { flex:0 0 42px; align-self:stretch; padding:0; border:0; border-radius:0; background:transparent; color:var(--muted); font-size:18px; }
+.combobox-panel { position:absolute; z-index:20; top:calc(100% + 6px); left:0; width:min(620px,calc(100vw - 48px)); border:1px solid var(--line); border-radius:12px; background:#fff; box-shadow:0 18px 45px rgba(23,35,31,.18); overflow:hidden; }
+.combobox-status { padding:10px 14px; border-bottom:1px solid var(--line); color:var(--muted); font-size:10px; }
+.combobox-list { max-height:320px; overflow-y:auto; padding:6px; }
+.combobox-group { position:sticky; top:-6px; z-index:1; padding:9px 10px 6px; background:#fff; color:var(--green); font-size:10px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
+.combobox-option { display:flex; flex-direction:column; align-items:flex-start; gap:3px; width:100%; padding:10px; border:0; border-radius:8px; background:#fff; color:var(--ink); text-align:left; }
+.combobox-option:hover,.combobox-option:focus { outline:0; background:#eef6f1; }
+.combobox-option strong { max-width:100%; font-size:12px; line-height:1.35; }
+.combobox-option span { color:var(--muted); font-size:10px; line-height:1.35; }
+.combobox-option.manual-option { margin-top:6px; border-top:1px solid var(--line); border-radius:0 0 8px 8px; }
+@media(max-width:560px){.combobox-panel{width:100%}}
