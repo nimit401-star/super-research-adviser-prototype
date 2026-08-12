@@ -66,3 +66,18 @@ footer { padding:28px; text-align:center; border-top:1px solid var(--line); colo
 .source-groups li span:last-child { color:#b9c4bf; font-size:11px; line-height:1.45; }
 .methodology .source-note { max-width:none; margin:22px 0 0; color:#91a099; font-size:10px; }
 @media(max-width:850px){ .source-groups{grid-template-columns:1fr} }
+
+
+.fact-find { margin-bottom:28px; padding:24px; border:1px solid var(--line); border-radius:16px; background:#fff; }
+.fact-find-heading { display:flex; justify-content:space-between; align-items:start; gap:24px; margin-bottom:20px; }
+.fact-find-heading h2 { font-size:22px; }.fact-find-heading>p { max-width:510px; margin:0; color:var(--muted); font-size:11px; line-height:1.55; }
+.step-label { margin:0 0 6px; color:var(--green); font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+.fact-grid,.contribution-fields { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.fact-grid label,.contribution-fields label { display:flex; flex-direction:column; gap:7px; font-size:11px; font-weight:750; }
+.fact-grid input,.contribution-fields input,.suffix-input { width:100%; border:1px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); font:inherit; }
+.fact-grid>label>input { padding:14px; }.contribution-fields { margin-top:12px; }
+.suffix-input { display:flex; align-items:center; padding-right:14px; }.suffix-input input { padding:14px; border:0; outline:0; background:transparent; }.suffix-input span { color:var(--muted); }
+.contribution-preview { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }.contribution-preview span { padding:9px 11px; border-radius:9px; background:#f2f7f3; color:var(--muted); font-size:10px; }.contribution-preview strong { color:var(--ink); }.contribution-preview .cap-warning { background:#fff2d9; color:#7a5615; }
+.client-summary { display:flex; flex-wrap:wrap; gap:10px; margin:-12px 0 28px; padding:14px; border:1px solid var(--line); border-radius:12px; background:white; }.client-summary span { color:var(--muted); font-size:11px; }.client-summary strong { color:var(--ink); }
+@media(max-width:850px){.fact-grid,.contribution-fields{grid-template-columns:1fr 1fr}.fact-find-heading{flex-direction:column}}
+@media(max-width:560px){.fact-grid,.contribution-fields{grid-template-columns:1fr}.fact-find{padding:18px}}
