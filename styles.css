@@ -87,7 +87,7 @@ footer { padding:28px; text-align:center; border-top:1px solid var(--line); colo
 .comparison-heading h2{margin:.15rem 0 0;font-size:1.35rem}.comparison-heading>span,.comparison-note{color:var(--muted);font-size:.82rem}
 .comparison-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem}
 .comparison-column{padding:1rem;border:1px solid var(--line);border-radius:14px;background:var(--paper)}
-.comparison-column:first-child{border:2px solid var(--ink)}.comparison-column>small{color:var(--accent-dark);font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.comparison-column:first-child{border:2px solid var(--ink)}.comparison-column>small{color:var(--green);font-weight:800;text-transform:uppercase;letter-spacing:.06em}
 .comparison-column h3{margin:.45rem 0 .2rem;font-size:1rem}.comparison-column>p{margin:0 0 .75rem;color:var(--muted);font-size:.8rem}
 .comparison-column dl{margin:0}.comparison-column dl div{display:flex;justify-content:space-between;gap:.5rem;padding:.5rem 0;border-top:1px solid var(--line)}
 .comparison-column dt{color:var(--muted);font-size:.76rem}.comparison-column dd{margin:0;font-size:.78rem;font-weight:800;text-align:right}
