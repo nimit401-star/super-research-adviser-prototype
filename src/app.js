@@ -1,6 +1,7 @@
 import { scoreProducts } from "./score.js";
 import { findPdsLink } from "./pds.js";
 import { calculateClientContext } from "./client-context.js";
+import { buildComparison } from "./current-comparison.js";
 
 const cards = document.querySelector("#result-cards");
 const form = document.querySelector("#research-form");
@@ -9,6 +10,8 @@ const context = document.querySelector("#results-context");
 const showMore = document.querySelector("#show-more");
 const clientSummary = document.querySelector("#client-summary");
 const contributionPreview = document.querySelector("#contribution-preview");
+const comparisonPanel = document.querySelector("#current-comparison");
+const currentProductOptions = document.querySelector("#current-product-options");
 let products = [], visible = 6, current = [];
 
 const pct = value => value == null ? "—" : `${value.toFixed(2).replace(/\.00$/,"")}%`;
@@ -72,6 +75,34 @@ function renderCard(product, selected) {
   </article>`;
 }
 
+function comparisonColumn(product, selected, heading) {
+  return `<article class="comparison-column"><small>${escapeHtml(heading)}</small><h3>${escapeHtml(product.productName)}</h3><p>${escapeHtml(product.rseName)}</p><dl><div><dt>Research score</dt><dd>${product.matchScore}/100</dd></div><div><dt>Growth assets</dt><dd>${pct(product.growthAllocationPct)}</dd></div><div><dt>Annual fee</dt><dd>${aud(product.comparisonFee.annualFee)}</dd></div><div><dt>${selected.horizon.replace("y","-year")} net return</dt><dd>${pct(product.returns[selected.horizon].netReturn50kPct)}</dd></div><div><dt>APRA test</dt><dd>${escapeHtml(product.performanceTestResult ?? "Not assessed")}</dd></div></dl></article>`;
+}
+
+function renderCurrentComparison(client, selected) {
+  if (!client.currentFund) { comparisonPanel.hidden=true; comparisonPanel.innerHTML=""; return; }
+  const comparison=buildComparison(products,current,client.currentFund);
+  comparisonPanel.hidden=false;
+  if (comparison.status==="unmapped") {
+    comparisonPanel.innerHTML=`<div class="comparison-message"><strong>Current position not mapped</strong><span>“${escapeHtml(client.currentFund)}” was not found in the current MySuper dataset. Keep it as an adviser review item; broader Choice and fund-issued data is being added separately.</span></div>`;
+    return;
+  }
+  if (comparison.status==="ambiguous") {
+    comparisonPanel.innerHTML=`<div class="comparison-message"><strong>Select the specific current product or lifecycle stage</strong><span>${comparison.candidates.length} APRA rows match “${escapeHtml(client.currentFund)}”. Enter the exact product and stage before relying on a comparison.</span></div>`;
+    return;
+  }
+  if (!comparison.current) {
+    comparisonPanel.innerHTML=`<div class="comparison-message"><strong>Current product is not comparable under these criteria</strong><span>The product was found, but one or more fee, growth or ${escapeHtml(selected.horizon)} return fields needed by this model are unavailable.</span></div>`;
+    return;
+  }
+  comparisonPanel.innerHTML=`<div class="comparison-heading"><div><p class="eyebrow">Stay versus shortlist</p><h2>Compare the current position with leading research matches</h2></div><span>Same balance, return period and scoring rules</span></div><div class="comparison-grid">${comparisonColumn(comparison.current,selected,"Current position")}${comparison.shortlist.map((product,index)=>comparisonColumn(product,selected,`Research match ${index+1}`)).join("")}</div><p class="comparison-note">This is a like-for-like APRA data comparison only. Insurance, eligibility, investment-option features, tax and switching consequences still require adviser review.</p>`;
+}
+
+function populateCurrentProductOptions() {
+  const values=[...new Set(products.map(product=>product.lifecycleStageName?`${product.productName} — ${product.lifecycleStageName}`:product.productName))].sort();
+  currentProductOptions.innerHTML=values.map(value=>`<option value="${escapeHtml(value)}"></option>`).join("");
+}
+
 function render(reset=true) {
   if (reset) visible=6;
   const selected=criteria(), client=updateContributionPreview(); current=scoreProducts(products,selected);
@@ -79,6 +110,7 @@ function render(reset=true) {
   context.textContent=`Ranked for ${selected.growthMin}–${selected.growthMax}% growth, ${aud(selected.amount)} comparison amount and ${selected.horizon.replace("y","-year")} net return. Showing research matches, not recommendations.`;
   const currentFund=client.currentFund?`Current position: <strong>${escapeHtml(client.currentFund)}</strong>`:"Current fund not entered";
   clientSummary.innerHTML=`<span>${currentFund}</span><span>Age <strong>${client.age}</strong> · retirement in <strong>${client.yearsToRetirement} years</strong></span>${client.isWorking?`<span>First-year employer SG <strong>${aud(client.employerSg)}</strong></span><span>Total concessional <strong>${aud(client.totalConcessional)}</strong></span>`:""}`;
+  renderCurrentComparison(client,selected);
   cards.innerHTML=current.slice(0,visible).map(product=>renderCard(product,selected)).join("");
   showMore.hidden=visible>=current.length;
 }
@@ -92,5 +124,6 @@ try {
   const [productResponse,metadataResponse]=await Promise.all([fetch("public/data/products.json"),fetch("public/data/metadata.json")]);
   if(!productResponse.ok||!metadataResponse.ok) throw new Error("Research data could not be loaded.");
   products=await productResponse.json(); const metadata=await metadataResponse.json();
+  populateCurrentProductOptions();
   document.querySelector("#reporting-date").textContent=`Reporting date ${metadata.reportingDate}`; render();
 } catch(error) { title.textContent="Data unavailable"; cards.innerHTML=`<p class="error">${escapeHtml(error.message)} Please refresh or try again later.</p>`; }
