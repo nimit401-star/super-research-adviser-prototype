@@ -20,7 +20,7 @@ const currentFundStatus = document.querySelector("#current-fund-status");
 const manualCurrentFundField = document.querySelector("#manual-current-fund-field");
 const manualCurrentFundInput = document.querySelector("#manual-current-fund");
 const MANUAL_CURRENT_FUND = "__manual__";
-let products = [], visible = 6, current = [], currentProductOptions = [];
+let products = [], directoryProducts = [], visible = 6, current = [], currentProductOptions = [];
 
 const pct = value => value == null ? "—" : `${value.toFixed(2).replace(/\.00$/,"")}%`;
 const aud = value => value == null ? "—" : new Intl.NumberFormat("en-AU",{style:"currency",currency:"AUD",maximumFractionDigits:2}).format(value);
@@ -92,7 +92,7 @@ function renderCurrentComparison(client, selected) {
   const comparison=buildComparison(products,current,client.currentFund);
   comparisonPanel.hidden=false;
   if (comparison.status==="unmapped") {
-    comparisonPanel.innerHTML=`<div class="comparison-message"><strong>Current position not mapped</strong><span>“${escapeHtml(client.currentFund)}” was not found in the current MySuper dataset. Keep it as an adviser review item; broader Choice and fund-issued data is being added separately.</span></div>`;
+    comparisonPanel.innerHTML=`<div class="comparison-message"><strong>Current position not mapped</strong><span>“${escapeHtml(client.currentFund)}” is recorded from APRA’s broader product directory or manual entry, but it is not yet available in the quantitative comparison dataset. Keep it as an adviser review item and verify the current PDS.</span></div>`;
     return;
   }
   if (comparison.status==="ambiguous") {
@@ -144,7 +144,7 @@ function renderCurrentProductOptions(query="") {
     button.className="combobox-option";
     button.setAttribute("role","option");
     button.dataset.value=option.value;
-    button.innerHTML=`<strong>${escapeHtml(option.productName)}</strong>${option.stageName?`<span>${escapeHtml(option.stageName)}</span>`:""}`;
+    button.innerHTML=`<strong>${escapeHtml(option.productName)}</strong><span>${escapeHtml([option.stageName,option.productType,option.productPhase,option.availability].filter(Boolean).join(" · "))}</span>`;
     button.addEventListener("click",()=>chooseCurrentFund(option.value,option.value));
     currentFundList.append(button);
   });
@@ -172,10 +172,26 @@ function populateCurrentProductOptions() {
       productName:product.productName,
       stageName:product.lifecycleStageName??"",
       fundName:product.rseName,
+      productType:"MySuper · research comparison available",
+      productPhase:"Accumulation",
+      availability:"",
+      directoryOnly:false,
       searchText:`${product.rseName} ${product.productName} ${product.lifecycleStageName??""}`.toLowerCase()
     });
   });
+  directoryProducts.forEach(product=>{
+    const alreadyComparable=[...unique.values()].some(option=>option.fundName===product.rseName && option.productName===product.productName);
+    if(alreadyComparable && product.productType==="MySuper Product") return;
+    const value=`${product.productName} [${product.productType??"APRA product"}]`;
+    unique.set(`directory|${product.productId}`,{
+      value, productName:product.productName, stageName:"", fundName:product.rseName,
+      productType:product.productType??"APRA product", productPhase:product.productPhase??"Phase not stated",
+      availability:product.openToNewMembers==="Yes"?"Open to new members":"Check availability", directoryOnly:true,
+      searchText:`${product.rseName} ${product.productName} ${product.productType??""} ${product.productPhase??""}`.toLowerCase()
+    });
+  });
   currentProductOptions=[...unique.values()];
+  currentProductOptions.sort((a,b)=>a.fundName.localeCompare(b.fundName)||a.productName.localeCompare(b.productName)||a.stageName.localeCompare(b.stageName));
 }
 
 function updateCurrentFundMode() {
@@ -225,10 +241,14 @@ form.addEventListener("submit", event => { event.preventDefault(); render(); doc
 showMore.addEventListener("click",()=>{visible+=6;render(false)});
 
 try {
-  const [productResponse,metadataResponse]=await Promise.all([fetch("public/data/products.json"),fetch("public/data/metadata.json")]);
-  if(!productResponse.ok||!metadataResponse.ok) throw new Error("Research data could not be loaded.");
+  const [productResponse,metadataResponse,directoryResponse,directoryMetadataResponse]=await Promise.all([
+    fetch("public/data/products.json"),fetch("public/data/metadata.json"),
+    fetch("public/data/product-directory.json"),fetch("public/data/product-directory-metadata.json")
+  ]);
+  if(!productResponse.ok||!metadataResponse.ok||!directoryResponse.ok||!directoryMetadataResponse.ok) throw new Error("Research data could not be loaded.");
   products=await productResponse.json(); const metadata=await metadataResponse.json();
+  directoryProducts=await directoryResponse.json(); const directoryMetadata=await directoryMetadataResponse.json();
   populateCurrentProductOptions();
   updateCurrentFundMode();
-  document.querySelector("#reporting-date").textContent=`Reporting date ${metadata.reportingDate}`; render();
+  document.querySelector("#reporting-date").textContent=`Comparison ${metadata.reportingDate} · Product directory ${directoryMetadata.reportingDate}`; render();
 } catch(error) { title.textContent="Data unavailable"; cards.innerHTML=`<p class="error">${escapeHtml(error.message)} Please refresh or try again later.</p>`; }

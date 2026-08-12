@@ -1,0 +1,47 @@
+name: Refresh APRA product directory
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Download APRA QSPS product structure
+        run: |
+          curl --fail --location --retry 3 --output /tmp/qsps-product.zip "https://www.apra.gov.au/system/files/2026-06/QSPS%20March%202026%20CSV%20files%20-%20Table%201a-1b_0.zip"
+          unzip -p /tmp/qsps-product.zip "QSPS Table 1a.csv" > /tmp/qsps-table-1a.csv
+      - name: Build current product directory
+        run: python ingestion/transform_qsps_directory.py --input /tmp/qsps-table-1a.csv
+      - name: Run contract tests
+        run: python -m unittest discover -s tests -v
+      - name: Publish validation summary
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          report = json.load(open("public/data/product-directory-metadata.json", encoding="utf-8"))
+          print("# APRA product directory")
+          print(f"- Reporting date: **{report['reportingDate']}**")
+          print(f"- Current products: **{report['recordCount']}**")
+          for product_type, count in report["countsByProductType"].items():
+              print(f"- {product_type}: {count}")
+          PY
+      - name: Open reviewed directory-refresh pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          commit-message: "data: refresh APRA QSPS product directory"
+          title: "Data refresh: APRA product directory"
+          body: |
+            Automated APRA QSPS Table 1a directory refresh.
+
+            Review the directory metadata, product counts and reporting date before merging.
+          branch: data/apra-product-directory-refresh
+          delete-branch: true

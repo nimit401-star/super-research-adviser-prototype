@@ -33,6 +33,7 @@ h2 { margin:0; font-size:clamp(28px,3vw,42px); letter-spacing:-.04em; }
 .data-badge>span { width:8px; height:8px; border-radius:50%; background:#3cab76; }
 .data-badge strong { font-size:12px; }.data-badge small { grid-column:2; color:var(--muted); }
 .results-context { margin:14px 0 28px; color:var(--muted); }
+.universe-note { margin:-16px 0 28px; padding:11px 13px; border-left:3px solid var(--amber); background:#fff8e9; color:#6c5a35; font-size:11px; line-height:1.5; }
 .card-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
 .card { padding:22px; border:1px solid var(--line); border-radius:16px; background:#fff; transition:transform .2s,box-shadow .2s; }
 .card:hover { transform:translateY(-3px); box-shadow:0 14px 35px rgba(24,55,43,.08); }
