@@ -35,9 +35,9 @@ class ChoiceCohortAuditTests(unittest.TestCase):
             "Product Phase": "Accumulation", "Investment Menu Name": "Core",
             "Investment Option / Lifecycle Stage Name": "Balanced", "Investment Option Type": "Trustee directed",
             "Investment Option Category": "Multi-sector", "RSE name": "Example Fund",
-            "Three-year net return \n(rep member) - Annualised": "7.1",
-            "Five-year net return \n(rep member) - Annualised": "6.8",
-            "Total Fees and Costs\n(rep member)": "560",
+            "Three-year net return \n(rep member) - Annualised": "0.071",
+            "Five-year net return \n(rep member) - Annualised": "0.068",
+            "Total Fees and Costs\n(rep member)": "0.0056",
         }
         row.update(overrides)
         return row
@@ -50,18 +50,43 @@ class ChoiceCohortAuditTests(unittest.TestCase):
             ])
             self.write_csv(root, "QSPS Table 8b.csv", SAA_HEADERS, [{
                 "Investment Option Identifier": "O1", "Period": "2026-03-31",
-                "Growth asset weighting": "70", "Growth asset band": "60-80",
+                "Growth asset weighting": "0.70", "Growth asset band": "60% - 75%",
             }])
             report = audit_choice_cohort(root)
             self.assertEqual(report["eligibleRecordCount"], 1)
-            self.assertEqual(report["records"][0]["optionId"], "O1")
+            self.assertEqual(report["records"][0]["peerGroup"], "growth")
+            self.assertEqual(report["peerGroupCounts"], {"growth": 1})
             self.assertFalse(report["rankingEnabled"])
             self.assertEqual(report["exclusionCounts"]["notDiversifiedMultiSector"], 1)
+
+    def test_requires_both_three_and_five_year_returns(self):
+        with tempfile.TemporaryDirectory() as root:
+            self.write_csv(root, "QSPS Table 5a.csv", PERFORMANCE_HEADERS, [
+                self.performance_row(**{"Five-year net return \n(rep member) - Annualised": ""})
+            ])
+            self.write_csv(root, "QSPS Table 8b.csv", SAA_HEADERS, [{
+                "Investment Option Identifier": "O1", "Period": "2026-03-31",
+                "Growth asset weighting": "0.70", "Growth asset band": "60% - 75%",
+            }])
+            report = audit_choice_cohort(root)
+            self.assertEqual(report["eligibleRecordCount"], 0)
+            self.assertEqual(report["exclusionCounts"]["missing:return5y"], 1)
+
+    def test_excludes_zero_growth_multi_sector_option(self):
+        with tempfile.TemporaryDirectory() as root:
+            self.write_csv(root, "QSPS Table 5a.csv", PERFORMANCE_HEADERS, [self.performance_row()])
+            self.write_csv(root, "QSPS Table 8b.csv", SAA_HEADERS, [{
+                "Investment Option Identifier": "O1", "Period": "2026-03-31",
+                "Growth asset weighting": "0", "Growth asset band": "0 - 20%",
+            }])
+            report = audit_choice_cohort(root)
+            self.assertEqual(report["eligibleRecordCount"], 0)
+            self.assertEqual(report["exclusionCounts"]["invalidOrZeroGrowthAllocation"], 1)
 
     def test_fails_closed_when_asset_allocation_join_is_ambiguous(self):
         with tempfile.TemporaryDirectory() as root:
             self.write_csv(root, "QSPS Table 5a.csv", PERFORMANCE_HEADERS, [self.performance_row()])
-            duplicate = {"Investment Option Identifier": "O1", "Period": "2026-03-31", "Growth asset weighting": "70", "Growth asset band": "60-80"}
+            duplicate = {"Investment Option Identifier": "O1", "Period": "2026-03-31", "Growth asset weighting": "0.70", "Growth asset band": "60% - 75%"}
             self.write_csv(root, "QSPS Table 8b.csv", SAA_HEADERS, [duplicate])
             self.write_csv(root, "QSPS Table 8c.csv", SAA_HEADERS, [duplicate])
             report = audit_choice_cohort(root)
