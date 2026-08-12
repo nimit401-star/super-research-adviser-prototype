@@ -204,8 +204,8 @@ function updateCurrentFundMode() {
 function render(reset=true) {
   if (reset) visible=6;
   const selected=criteria(), client=updateContributionPreview(); current=scoreProducts(products,selected);
-  title.textContent=`${current.length} comparable products`;
-  context.textContent=`Ranked for ${selected.growthMin}–${selected.growthMax}% growth, ${aud(selected.amount)} comparison amount and ${selected.horizon.replace("y","-year")} net return. Showing research matches, not recommendations.`;
+  title.textContent=`${current.length} comparable MySuper records`;
+  context.textContent=`Each record is a MySuper product or lifecycle stage with comparable CPPP data. Ranked for ${selected.growthMin}–${selected.growthMax}% growth, ${aud(selected.amount)} comparison amount and ${selected.horizon.replace("y","-year")} net return. The current-fund directory contains ${number(directoryProducts.length)} APRA products; Choice and defined-benefit products are directory-only until quantitative joins are validated.`;
   const currentFund=client.currentFund?`Current position: <strong>${escapeHtml(client.currentFund)}</strong>`:"Current fund not entered";
   clientSummary.innerHTML=`<span>${currentFund}</span><span>Age <strong>${client.age}</strong> · retirement in <strong>${client.yearsToRetirement} years</strong></span>${client.isWorking?`<span>First-year employer SG <strong>${aud(client.employerSg)}</strong></span><span>Total concessional <strong>${aud(client.totalConcessional)}</strong></span>`:""}`;
   renderCurrentComparison(client,selected);
