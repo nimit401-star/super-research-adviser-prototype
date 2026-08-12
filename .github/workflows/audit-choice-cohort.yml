@@ -28,12 +28,16 @@ jobs:
           python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
           import json
           report = json.load(open("public/data/choice-cohort-audit.json", encoding="utf-8"))
-          print("# Diversified Choice cohort audit")
+          print("# Diversified Choice peer-group audit")
           print(f"- Reporting date: **{report['reportingDate']}**")
           print(f"- Current Table 5a rows reviewed: **{report['currentPerformanceRowCount']:,}**")
-          print(f"- Complete diversified Choice records: **{report['eligibleRecordCount']:,}**")
+          print(f"- Records passing stricter validation: **{report['eligibleRecordCount']:,}**")
+          print(f"- Shared option IDs across product/menu pathways: **{report['sharedOptionIdCount']:,}**")
+          print("- Peer groups:")
+          for name, count in report["peerGroupCounts"].items():
+              print(f"  - {name}: **{count:,}**")
           print("- Choice ranking enabled: **No**")
-          print("- Review the record-level cohort and exclusions before connecting it to adviser rankings.")
+          print("- Ranking remains disabled until representative-member fees are aligned with the adviser-selected balance.")
           PY
       - name: Upload Choice cohort audit
         uses: actions/upload-artifact@v4
