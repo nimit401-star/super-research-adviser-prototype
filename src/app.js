@@ -55,8 +55,8 @@ function updateContributionPreview() {
 }
 
 function criteria() {
-  const [growthMin,growthMax,choicePeerGroup] = new FormData(form).get("growth").split(",");
-  return { growthMin:Number(growthMin), growthMax:Number(growthMax), choicePeerGroup, amount:Number(document.querySelector("#balance").value), horizon:document.querySelector("#horizon").value };
+  const [growthMin,growthMax] = new FormData(form).get("growth").split(",").map(Number);
+  return { growthMin, growthMax, choicePeerGroup:document.querySelector("#choice-peer-group").value, amount:Number(document.querySelector("#balance").value), horizon:document.querySelector("#horizon").value };
 }
 
 function explanations(product, selected) {
