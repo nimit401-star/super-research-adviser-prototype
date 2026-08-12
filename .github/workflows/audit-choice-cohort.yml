@@ -1,0 +1,44 @@
+name: Audit diversified Choice cohort
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Download APRA QSPS quantitative tables
+        run: |
+          curl --fail --location --retry 3 --output /tmp/qsps-quantitative.zip "https://www.apra.gov.au/system/files/2026-06/QSPS%20March%202026%20CSV%20files%20-%20Table%204-11.zip"
+          mkdir -p /tmp/qsps-quantitative
+          unzip -q /tmp/qsps-quantitative.zip -d /tmp/qsps-quantitative
+      - name: Audit diversified Choice cohort
+        run: python ingestion/audit_choice_cohort.py --input-dir /tmp/qsps-quantitative
+      - name: Run tests
+        run: python -m unittest discover -s tests -v
+      - name: Publish cohort summary
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          report = json.load(open("public/data/choice-cohort-audit.json", encoding="utf-8"))
+          print("# Diversified Choice cohort audit")
+          print(f"- Reporting date: **{report['reportingDate']}**")
+          print(f"- Current Table 5a rows reviewed: **{report['currentPerformanceRowCount']:,}**")
+          print(f"- Complete diversified Choice records: **{report['eligibleRecordCount']:,}**")
+          print("- Choice ranking enabled: **No**")
+          print("- Review the record-level cohort and exclusions before connecting it to adviser rankings.")
+          PY
+      - name: Upload Choice cohort audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: apra-diversified-choice-cohort-audit
+          path: public/data/choice-cohort-audit.json
+          if-no-files-found: error
+          retention-days: 14
