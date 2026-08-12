@@ -77,6 +77,9 @@ footer { padding:28px; text-align:center; border-top:1px solid var(--line); colo
 .fact-grid input,.contribution-fields input,.suffix-input { width:100%; border:1px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); font:inherit; }
 .fact-grid>label>input { padding:14px; }.contribution-fields { margin-top:12px; }
 .suffix-input { display:flex; align-items:center; padding-right:14px; }.suffix-input input { padding:14px; border:0; outline:0; background:transparent; }.suffix-input span { color:var(--muted); }
+.contribution-fields .money-input { min-width:0; }
+.contribution-fields .money-input input { min-width:0; padding:14px 14px 14px 5px; border:0; border-radius:0; outline:0; background:transparent; box-shadow:none; }
+.contribution-fields .money-input:focus-within,.field-row .money-input:focus-within,.suffix-input:focus-within { border-color:var(--green); box-shadow:0 0 0 2px rgba(19,92,69,.12); }
 .contribution-preview { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }.contribution-preview span { padding:9px 11px; border-radius:9px; background:#f2f7f3; color:var(--muted); font-size:10px; }.contribution-preview strong { color:var(--ink); }.contribution-preview .cap-warning { background:#fff2d9; color:#7a5615; }
 .client-summary { display:flex; flex-wrap:wrap; gap:10px; margin:-12px 0 28px; padding:14px; border:1px solid var(--line); border-radius:12px; background:white; }.client-summary span { color:var(--muted); font-size:11px; }.client-summary strong { color:var(--ink); }
 @media(max-width:850px){.fact-grid,.contribution-fields{grid-template-columns:1fr 1fr}.fact-find-heading{flex-direction:column}}
