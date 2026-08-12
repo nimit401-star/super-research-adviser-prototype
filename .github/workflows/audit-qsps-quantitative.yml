@@ -35,6 +35,13 @@ jobs:
           print("- Choice ranking enabled: **No**")
           print("- Review the captured headers and join keys before implementing quantitative scoring.")
           PY
+      - name: Upload quantitative audit artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: apra-choice-quantitative-audit
+          path: public/data/qsps-quantitative-audit.json
+          if-no-files-found: error
+          retention-days: 14
       - name: Open reviewed audit pull request
         uses: peter-evans/create-pull-request@v8
         with:
