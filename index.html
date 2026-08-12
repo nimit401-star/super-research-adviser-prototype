@@ -24,6 +24,26 @@
         <p class="lede">Explore APRA data using transparent, adjustable criteria. Results are research matches—not product recommendations.</p>
 
         <form class="research-panel" id="research-form">
+        <section class="fact-find" aria-labelledby="fact-find-title">
+          <div class="fact-find-heading">
+            <div><p class="step-label">Client context</p><h2 id="fact-find-title">Build the starting position</h2></div>
+            <p>Used only in this browser session. These facts provide contribution and review context; they do not add unsupported points to the product score.</p>
+          </div>
+          <div class="fact-grid">
+            <label>Employment status<select id="employment-status"><option value="employed" selected>Employed</option><option value="self-employed">Self-employed</option><option value="not-employed">Not currently employed</option><option value="retired">Retired</option></select></label>
+            <label>Current fund or product<input id="current-fund" type="text" maxlength="100" placeholder="Optional — enter current fund" /></label>
+            <label>Client age<input id="client-age" type="number" min="18" max="100" value="40" required /></label>
+            <label>Expected retirement age<input id="retirement-age" type="number" min="18" max="100" value="67" required /></label>
+          </div>
+          <div class="contribution-fields" id="contribution-fields">
+            <label>Annual superable earnings<div class="money-input"><span aria-hidden="true">$</span><input id="salary" type="number" min="0" step="1000" value="120000" /></div></label>
+            <label>Employer SG rate<div class="suffix-input"><input id="sg-rate" type="number" min="0" max="30" step="0.1" value="12" /><span aria-hidden="true">%</span></div></label>
+            <label>Annual salary sacrifice<div class="money-input"><span aria-hidden="true">$</span><input id="salary-sacrifice" type="number" min="0" step="100" value="0" /></div></label>
+            <label>Personal concessional contributions<div class="money-input"><span aria-hidden="true">$</span><input id="personal-concessional" type="number" min="0" step="100" value="0" /></div></label>
+          </div>
+          <div class="contribution-preview" id="contribution-preview" aria-live="polite"></div>
+        </section>
+
           <fieldset>
             <legend>1. Growth preference</legend>
             <div class="choice-grid" id="growth-options">
@@ -58,6 +78,7 @@
           <div class="data-badge"><span></span><strong>APRA data</strong><small id="reporting-date">Loading</small></div>
         </div>
         <p class="results-context" id="results-context"></p>
+        <div class="client-summary" id="client-summary"></div>
         <div class="card-grid" id="result-cards"></div>
         <button class="secondary" id="show-more" type="button" hidden>Show 6 more</button>
       </section>
