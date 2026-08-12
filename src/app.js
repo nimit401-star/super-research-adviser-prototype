@@ -1,5 +1,5 @@
 import { scoreProducts } from "./score.js";
-import { findPdsLink } from "./pds.js";
+import { findDisclosureLinks } from "./pds.js";
 import { calculateClientContext } from "./client-context.js";
 import { buildComparison, resolveCurrentFundValue } from "./current-comparison.js";
 import { rankChoiceOptions } from "./choice-score.js";
@@ -24,6 +24,7 @@ const MANUAL_CURRENT_FUND = "__manual__";
 const choiceCards = document.querySelector("#choice-cards");
 const choiceContext = document.querySelector("#choice-context");
 const showMoreChoice = document.querySelector("#show-more-choice");
+const printSummary = document.querySelector("#print-summary");
 let products = [], directoryProducts = [], choiceDataset = null, visible = 6, choiceVisible = 6, current = [], currentChoice = [], currentProductOptions = [];
 
 const pct = value => value == null ? "—" : `${value.toFixed(2).replace(/\.00$/,"")}%`;
@@ -73,16 +74,27 @@ function explanations(product, selected) {
   return `<div class="fee-detail"><h4>Estimated annual fees at ${aud(fee.amount)}</h4><div class="fee-total"><strong>${aud(fee.annualFee)}</strong><span>${pct(fee.effectivePct)} of comparison amount</span></div><p><code>${aud(fee.amount)} × ${pct(fee.effectivePct)} = ${aud(fee.annualFee)} per year</code></p><small>${feeMethod} APRA reports total fees and costs; the source does not provide every underlying fee component in this prototype.</small></div><div class="score-detail"><h4>How each score was calculated</h4>${rows.map(([name,value,max,why])=>`<div class="score-row"><div><strong>${name}</strong><span>${escapeHtml(why)}</span></div><b>${value}<small> / ${max}</small></b></div>`).join("")}</div>`;
 }
 
+function renderDisclosureAction(product) {
+  const disclosure=findDisclosureLinks(product);
+  if(!disclosure) return '<div class="pds-action unavailable"><span>Official disclosure link not yet verified</span><small>Verify the exact product, menu and option on the provider website before advice is finalised.</small></div>';
+  return `<div class="pds-action"><strong>Official disclosure documents</strong>${disclosure.documents.map(document=>`<a href="${escapeHtml(document.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(document.type)} <span aria-hidden="true">↗</span></a>`).join("")}<small>Official fund website · Link verified ${escapeHtml(disclosure.verifiedAt)} · Confirm the document covers this exact pathway.</small></div>`;
+}
+
+function mySuperRationale(product,selected) {
+  const reasons=[];
+  if(product.scoreBreakdown.growthFit===35) reasons.push("growth allocation fits the selected range");
+  if(product.scoreBreakdown.feeEfficiency>=15) reasons.push("fee efficiency is above the comparable-peer midpoint");
+  if(product.scoreBreakdown.netReturn>=15) reasons.push(`${selected.horizon.replace("y","-year")} net return is above the comparable-peer midpoint`);
+  return reasons.length ? `Shortlisted because ${reasons.slice(0,2).join(" and ")}.` : "Included as a comparable APRA research record; review the full score breakdown.";
+}
+
 function renderCard(product, selected) {
   const stage = product.lifecycleStageName ? ` · ${product.lifecycleStageName}` : "";
   const flag = product.performanceTestResult == null ? '<span class="flag">APRA test not assessed for this stage</span>' : "";
-  const pds = findPdsLink(product);
-  const pdsAction = pds
-    ? `<div class="pds-action"><a href="${escapeHtml(pds.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(pds.label)} <span aria-hidden="true">↗</span></a><small>Official fund website · Link verified ${escapeHtml(pds.verifiedAt)}</small></div>`
-    : '<div class="pds-action unavailable"><span>PDS link not yet verified</span><small>Confirm the current document on the fund’s official website.</small></div>';
+  const pdsAction = renderDisclosureAction(product);
   return `<article class="card">
     <div class="card-top"><div><h3>${escapeHtml(product.productName)}${escapeHtml(stage)}</h3><p class="fund">${escapeHtml(product.rseName)}</p></div><div class="score" style="--score:${product.matchScore}"><span>${product.matchScore}<small>/100</small></span></div></div>
-    <div class="metrics"><div class="metric"><strong>${pct(product.growthAllocationPct)}</strong><span>Growth assets</span></div><div class="metric"><strong>${aud(product.comparisonFee.annualFee)}</strong><span>Est. annual fee · ${pct(product.comparisonFee.effectivePct)}</span></div><div class="metric"><strong>${pct(product.returns[selected.horizon].netReturn50kPct)}</strong><span>Net return · ${selected.horizon}</span></div></div>
+    <p class="shortlist-rationale">${escapeHtml(mySuperRationale(product,selected))}</p>\n    <div class="metrics"><div class="metric"><strong>${pct(product.growthAllocationPct)}</strong><span>Growth assets</span></div><div class="metric"><strong>${aud(product.comparisonFee.annualFee)}</strong><span>Est. annual fee · ${pct(product.comparisonFee.effectivePct)}</span></div><div class="metric"><strong>${pct(product.returns[selected.horizon].netReturn50kPct)}</strong><span>Net return · ${selected.horizon}</span></div></div>
     <details class="breakdown"><summary>View fee calculation and score explanation</summary>${explanations(product,selected)}</details>${pdsAction}${flag}
   </article>`;
 }
@@ -95,11 +107,7 @@ function renderChoiceCard(option,selected) {
     <div class="card-top"><div><span class="product-type">Choice · ${escapeHtml(option.peerGroup.replaceAll("-"," "))}</span><h3>${escapeHtml(option.optionName)}</h3><p class="fund">${escapeHtml(option.productName)} · ${escapeHtml(option.rseName)}</p></div><div class="score choice-score" style="--score:${option.choiceRankScore}"><span>${option.choiceRankScore}<small>/100</small></span></div></div>
     <p class="pathway">${escapeHtml(option.menuName)}${otherPathways}</p>
     <div class="metrics"><div class="metric"><strong>${pct(option.growthAllocationPct)}</strong><span>Growth assets</span></div><div class="metric"><strong>${aud(option.comparisonFee.annualFee)}</strong><span>Annual fee · ${pct(option.comparisonFee.effectivePct)}</span></div><div class="metric"><strong>${pct(option.netReturnPct)}</strong><span>Net return · ${selected.horizon}</span></div></div>
-    <details class="breakdown"><summary>View Choice rank and pathways</summary><div class="score-detail"><h4>Choice peer rank</h4><div class="score-row"><div><strong>Fee efficiency</strong><span>Lower balance-adjusted fee within this ${escapeHtml(option.peerGroup)} peer group.</span></div><b>${option.scoreBreakdown.feeEfficiency}<small> / 50</small></b></div><div class="score-row"><div><strong>Net return</strong><span>Higher APRA ${escapeHtml(selected.horizon.replace("y","-year"))} net return within the same peer group.</span></div><b>${option.scoreBreakdown.netReturn}<small> / 50</small></b></div></div><div class="fee-detail"><h4>Fee at ${aud(option.comparisonFee.amount)}</h4><p><code>${aud(option.comparisonFee.fixedAnnualDollars)} fixed + ${aud(option.comparisonFee.amount)} × ${pct(option.comparisonFee.variableRateDecimal*100)} = ${aud(option.comparisonFee.annualFee)}</code></p></div><div class="pathway-list"><strong>APRA product pathways</strong><ul>${option.pathways.map(path=>`<li>${escapeHtml(path)}</li>`).join("")}</ul></div></details>
-  </article>`;
-}
-
-function renderChoiceResults(selected) {
+    <p class="shortlist-rationale">Shortlisted within the selected ${escapeHtml(option.peerGroup.replaceAll("-"," "))} peer group using balance-adjusted fee efficiency and ${escapeHtml(selected.horizon.replace("y","-year"))} net return.</p>\n    <details class="breakdown"><summary>View Choice rank and pathways</summary><div class="score-detail"><h4>Choice peer rank</h4><div class="score-row"><div><strong>Fee efficiency</strong><span>Lower balance-adjusted fee within this ${escapeHtml(option.peerGroup)} peer group.</span></div><b>${option.scoreBreakdown.feeEfficiency}<small> / 50</small></b></div><div class="score-row"><div><strong>Net return</strong><span>Higher APRA ${escapeHtml(selected.horizon.replace("y","-year"))} net return within the same peer group.</span></div><b>${option.scoreBreakdown.netReturn}<small> / 50</small></b></div></div><div class="fee-detail"><h4>Fee at ${aud(option.comparisonFee.amount)}</h4><p><code>${aud(option.comparisonFee.fixedAnnualDollars)} fixed + ${aud(option.comparisonFee.amount)} × ${pct(option.comparisonFee.variableRateDecimal*100)} = ${aud(option.comparisonFee.annualFee)}</code></p></div><div class="pathway-list"><strong>APRA product pathways</strong><ul>${option.pathways.map(path=>`<li>${escapeHtml(path)}</li>`).join("")}</ul></div></details>${renderDisclosureAction(option)}\n  </article>`;\n}\n\nfunction renderChoiceResults(selected) {
   if(!choiceDataset?.rankingEnabled) {
     currentChoice=[]; choiceCards.innerHTML=""; choiceContext.textContent="Choice ranking data is not available."; showMoreChoice.hidden=true; return;
   }
@@ -287,3 +295,10 @@ try {
   updateCurrentFundMode();
   document.querySelector("#reporting-date").textContent=`MySuper ${metadata.reportingDate} · Choice ${choiceDataset.reportingDate} · Directory ${directoryMetadata.reportingDate}`; render();
 } catch(error) { title.textContent="Data unavailable"; cards.innerHTML=`<p class="error">${escapeHtml(error.message)} Please refresh or try again later.</p>`; }
+
+
+printSummary?.addEventListener("click",()=>{
+  document.body.classList.add("printing-research-summary");
+  window.print();
+  window.setTimeout(()=>document.body.classList.remove("printing-research-summary"),250);
+});
