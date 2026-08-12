@@ -31,7 +31,16 @@
           </div>
           <div class="fact-grid">
             <label>Employment status<select id="employment-status"><option value="employed" selected>Employed</option><option value="self-employed">Self-employed</option><option value="not-employed">Not currently employed</option><option value="retired">Retired</option></select></label>
-            <label>Current fund or product<input id="current-fund" type="text" maxlength="160" list="current-product-options" autocomplete="off" placeholder="Search the exact APRA product" /><datalist id="current-product-options"></datalist></label>
+            <label>Current fund or product
+              <select id="current-fund">
+                <option value="">Select the current fund/product</option>
+              </select>
+              <small>Choose from available APRA products or select the manual-entry option.</small>
+            </label>
+            <label id="manual-current-fund-field" hidden>Fund/product name
+              <input id="manual-current-fund" type="text" maxlength="160" autocomplete="off" placeholder="Enter the fund and product name" />
+              <small>This will remain an unmapped adviser review item.</small>
+            </label>
             <label>Client age<input id="client-age" type="number" min="18" max="100" value="40" required /></label>
             <label>Expected retirement age<input id="retirement-age" type="number" min="18" max="100" value="67" required /></label>
           </div>
