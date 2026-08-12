@@ -2,6 +2,7 @@ import { scoreProducts } from "./score.js";
 import { findPdsLink } from "./pds.js";
 import { calculateClientContext } from "./client-context.js";
 import { buildComparison, resolveCurrentFundValue } from "./current-comparison.js";
+import { rankChoiceOptions } from "./choice-score.js";
 
 const cards = document.querySelector("#result-cards");
 const form = document.querySelector("#research-form");
@@ -20,7 +21,10 @@ const currentFundStatus = document.querySelector("#current-fund-status");
 const manualCurrentFundField = document.querySelector("#manual-current-fund-field");
 const manualCurrentFundInput = document.querySelector("#manual-current-fund");
 const MANUAL_CURRENT_FUND = "__manual__";
-let products = [], directoryProducts = [], visible = 6, current = [], currentProductOptions = [];
+const choiceCards = document.querySelector("#choice-cards");
+const choiceContext = document.querySelector("#choice-context");
+const showMoreChoice = document.querySelector("#show-more-choice");
+let products = [], directoryProducts = [], choiceDataset = null, visible = 6, choiceVisible = 6, current = [], currentChoice = [], currentProductOptions = [];
 
 const pct = value => value == null ? "—" : `${value.toFixed(2).replace(/\.00$/,"")}%`;
 const aud = value => value == null ? "—" : new Intl.NumberFormat("en-AU",{style:"currency",currency:"AUD",maximumFractionDigits:2}).format(value);
@@ -52,7 +56,7 @@ function updateContributionPreview() {
 
 function criteria() {
   const [growthMin,growthMax] = new FormData(form).get("growth").split(",").map(Number);
-  return { growthMin, growthMax, amount:Number(document.querySelector("#balance").value), horizon:document.querySelector("#horizon").value };
+  return { growthMin, growthMax, choicePeerGroup:document.querySelector("#choice-peer-group").value, amount:Number(document.querySelector("#balance").value), horizon:document.querySelector("#horizon").value };
 }
 
 function explanations(product, selected) {
@@ -81,6 +85,33 @@ function renderCard(product, selected) {
     <div class="metrics"><div class="metric"><strong>${pct(product.growthAllocationPct)}</strong><span>Growth assets</span></div><div class="metric"><strong>${aud(product.comparisonFee.annualFee)}</strong><span>Est. annual fee · ${pct(product.comparisonFee.effectivePct)}</span></div><div class="metric"><strong>${pct(product.returns[selected.horizon].netReturn50kPct)}</strong><span>Net return · ${selected.horizon}</span></div></div>
     <details class="breakdown"><summary>View fee calculation and score explanation</summary>${explanations(product,selected)}</details>${pdsAction}${flag}
   </article>`;
+}
+
+function renderChoiceCard(option,selected) {
+  const otherPathways=option.pathwayCount>1
+    ? `<span class="pathway-note">Also reported through ${option.pathwayCount-1} other product/menu pathway${option.pathwayCount===2?"":"s"}; expand for details.</span>`
+    : "";
+  return `<article class="card choice-card">
+    <div class="card-top"><div><span class="product-type">Choice · ${escapeHtml(option.peerGroup.replaceAll("-"," "))}</span><h3>${escapeHtml(option.optionName)}</h3><p class="fund">${escapeHtml(option.productName)} · ${escapeHtml(option.rseName)}</p></div><div class="score choice-score" style="--score:${option.choiceRankScore}"><span>${option.choiceRankScore}<small>/100</small></span></div></div>
+    <p class="pathway">${escapeHtml(option.menuName)}${otherPathways}</p>
+    <div class="metrics"><div class="metric"><strong>${pct(option.growthAllocationPct)}</strong><span>Growth assets</span></div><div class="metric"><strong>${aud(option.comparisonFee.annualFee)}</strong><span>Annual fee · ${pct(option.comparisonFee.effectivePct)}</span></div><div class="metric"><strong>${pct(option.netReturnPct)}</strong><span>Net return · ${selected.horizon}</span></div></div>
+    <details class="breakdown"><summary>View Choice rank and pathways</summary><div class="score-detail"><h4>Choice peer rank</h4><div class="score-row"><div><strong>Fee efficiency</strong><span>Lower balance-adjusted fee within this ${escapeHtml(option.peerGroup)} peer group.</span></div><b>${option.scoreBreakdown.feeEfficiency}<small> / 50</small></b></div><div class="score-row"><div><strong>Net return</strong><span>Higher APRA ${escapeHtml(selected.horizon.replace("y","-year"))} net return within the same peer group.</span></div><b>${option.scoreBreakdown.netReturn}<small> / 50</small></b></div></div><div class="fee-detail"><h4>Fee at ${aud(option.comparisonFee.amount)}</h4><p><code>${aud(option.comparisonFee.fixedAnnualDollars)} fixed + ${aud(option.comparisonFee.amount)} × ${pct(option.comparisonFee.variableRateDecimal*100)} = ${aud(option.comparisonFee.annualFee)}</code></p></div><div class="pathway-list"><strong>APRA product pathways</strong><ul>${option.pathways.map(path=>`<li>${escapeHtml(path)}</li>`).join("")}</ul></div></details>
+  </article>`;
+}
+
+function renderChoiceResults(selected) {
+  if(!choiceDataset?.rankingEnabled) {
+    currentChoice=[]; choiceCards.innerHTML=""; choiceContext.textContent="Choice ranking data is not available."; showMoreChoice.hidden=true; return;
+  }
+  if(!["3y","5y"].includes(selected.horizon)) {
+    currentChoice=[]; choiceCards.innerHTML='<p class="choice-empty">Choice options currently have validated 3- and 5-year returns only. Select one of those periods to view the Choice peer ranking.</p>';
+    choiceContext.textContent=`No Choice ranking is shown for the selected ${selected.horizon.replace("y","-year")} period.`; showMoreChoice.hidden=true; return;
+  }
+  currentChoice=rankChoiceOptions(choiceDataset,{peerGroup:selected.choicePeerGroup,amount:selected.amount,horizon:selected.horizon});
+  const peerLabel=selected.choicePeerGroup.replaceAll("-"," ");
+  choiceContext.textContent=`${currentChoice.length} distinct Choice investment options ranked within the ${peerLabel} peer group at ${aud(selected.amount)}. Shared underlying options are shown once, with all APRA product/menu pathways retained in the details.`;
+  choiceCards.innerHTML=currentChoice.slice(0,choiceVisible).map(option=>renderChoiceCard(option,selected)).join("");
+  showMoreChoice.hidden=choiceVisible>=currentChoice.length;
 }
 
 function comparisonColumn(product, selected, heading) {
@@ -202,15 +233,16 @@ function updateCurrentFundMode() {
 }
 
 function render(reset=true) {
-  if (reset) visible=6;
+  if (reset) { visible=6; choiceVisible=6; }
   const selected=criteria(), client=updateContributionPreview(); current=scoreProducts(products,selected);
   title.textContent=`${current.length} comparable MySuper records`;
-  context.textContent=`Each record is a MySuper product or lifecycle stage with comparable CPPP data. Ranked for ${selected.growthMin}–${selected.growthMax}% growth, ${aud(selected.amount)} comparison amount and ${selected.horizon.replace("y","-year")} net return. The current-fund directory contains ${number(directoryProducts.length)} APRA products; Choice and defined-benefit products are directory-only until quantitative joins are validated.`;
+  context.textContent=`MySuper and Choice results are shown as separate research universes. MySuper uses the existing CPPP score; Choice options are ranked only inside the selected ${selected.choicePeerGroup.replaceAll("-"," ")} peer group using balance-adjusted fees and validated returns. The current-fund directory contains ${number(directoryProducts.length)} APRA products.`;
   const currentFund=client.currentFund?`Current position: <strong>${escapeHtml(client.currentFund)}</strong>`:"Current fund not entered";
   clientSummary.innerHTML=`<span>${currentFund}</span><span>Age <strong>${client.age}</strong> · retirement in <strong>${client.yearsToRetirement} years</strong></span>${client.isWorking?`<span>First-year employer SG <strong>${aud(client.employerSg)}</strong></span><span>Total concessional <strong>${aud(client.totalConcessional)}</strong></span>`:""}`;
   renderCurrentComparison(client,selected);
   cards.innerHTML=current.slice(0,visible).map(product=>renderCard(product,selected)).join("");
   showMore.hidden=visible>=current.length;
+  renderChoiceResults(selected);
 }
 
 currentFundSearch.addEventListener("focus",()=>renderCurrentProductOptions(currentFundSearch.value));
@@ -239,16 +271,19 @@ form.addEventListener("input", updateContributionPreview);
 updateContributionPreview();
 form.addEventListener("submit", event => { event.preventDefault(); render(); document.querySelector("#results").scrollIntoView({behavior:"smooth"}); });
 showMore.addEventListener("click",()=>{visible+=6;render(false)});
+showMoreChoice.addEventListener("click",()=>{choiceVisible+=6;render(false)});
 
 try {
-  const [productResponse,metadataResponse,directoryResponse,directoryMetadataResponse]=await Promise.all([
+  const [productResponse,metadataResponse,directoryResponse,directoryMetadataResponse,choiceResponse]=await Promise.all([
     fetch("public/data/products.json"),fetch("public/data/metadata.json"),
-    fetch("public/data/product-directory.json"),fetch("public/data/product-directory-metadata.json")
+    fetch("public/data/product-directory.json"),fetch("public/data/product-directory-metadata.json"),
+    fetch("public/data/choice-products.json")
   ]);
-  if(!productResponse.ok||!metadataResponse.ok||!directoryResponse.ok||!directoryMetadataResponse.ok) throw new Error("Research data could not be loaded.");
+  if(!productResponse.ok||!metadataResponse.ok||!directoryResponse.ok||!directoryMetadataResponse.ok||!choiceResponse.ok) throw new Error("Research data could not be loaded.");
   products=await productResponse.json(); const metadata=await metadataResponse.json();
   directoryProducts=await directoryResponse.json(); const directoryMetadata=await directoryMetadataResponse.json();
+  choiceDataset=await choiceResponse.json();
   populateCurrentProductOptions();
   updateCurrentFundMode();
-  document.querySelector("#reporting-date").textContent=`Comparison ${metadata.reportingDate} · Product directory ${directoryMetadata.reportingDate}`; render();
+  document.querySelector("#reporting-date").textContent=`MySuper ${metadata.reportingDate} · Choice ${choiceDataset.reportingDate} · Directory ${directoryMetadata.reportingDate}`; render();
 } catch(error) { title.textContent="Data unavailable"; cards.innerHTML=`<p class="error">${escapeHtml(error.message)} Please refresh or try again later.</p>`; }

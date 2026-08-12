@@ -84,6 +84,17 @@
                 <option value="10y" selected>10 years</option>
               </select>
             </label>
+            <label>4. Choice peer group
+              <select id="choice-peer-group">
+                <option value="defensive">Defensive · 0–20% growth</option>
+                <option value="conservative">Conservative · 20–40% growth</option>
+                <option value="balanced">Balanced · 40–60% growth</option>
+                <option value="growth" selected>Growth · 60–80% growth</option>
+                <option value="high-growth">High growth · 80–90% growth</option>
+                <option value="very-high-growth">Very high growth · 90–100% growth</option>
+              </select>
+              <small>Choice options are ranked only against this audited APRA peer group.</small>
+            </label>
           </div>
           <button type="submit">Find research matches <span aria-hidden="true">→</span></button>
         </form>
@@ -98,8 +109,17 @@
         <p class="universe-note"><strong>Coverage:</strong> the current-fund directory includes broader APRA-regulated products. Quantitative ranking remains limited to products with comparable fees, returns and strategy data.</p>
         <div class="client-summary" id="client-summary"></div>
         <section class="current-comparison" id="current-comparison" hidden></section>
-        <div class="card-grid" id="result-cards"></div>
-        <button class="secondary" id="show-more" type="button" hidden>Show 6 more</button>
+        <section class="result-universe" aria-labelledby="mysuper-title">
+          <div class="universe-heading"><div><p class="eyebrow">MySuper comparison</p><h3 id="mysuper-title">MySuper product and lifecycle records</h3></div><span>Existing CPPP 100-point research score</span></div>
+          <div class="card-grid" id="result-cards"></div>
+          <button class="secondary" id="show-more" type="button" hidden>Show 6 more MySuper records</button>
+        </section>
+        <section class="result-universe choice-universe" id="choice-results" aria-labelledby="choice-results-title">
+          <div class="universe-heading"><div><p class="eyebrow">Choice comparison</p><h3 id="choice-results-title">Choice options in the selected peer group</h3></div><span id="choice-boundary">Same growth peer group only</span></div>
+          <p class="choice-context" id="choice-context"></p>
+          <div class="card-grid" id="choice-cards"></div>
+          <button class="secondary" id="show-more-choice" type="button" hidden>Show 6 more Choice options</button>
+        </section>
       </section>
 
       <section class="methodology" id="methodology">
@@ -113,6 +133,7 @@
           <div><strong>5</strong><span>Data completeness</span></div>
         </div>
         <div class="methodology-copy">
+          <p><strong>Choice ranking:</strong> Choice options are never mixed into the MySuper score. Within the selected audited growth peer group, the Choice rank gives 50 points for lower balance-adjusted fees and 50 points for higher APRA net return. It is available only for 3- and 5-year periods.</p>
           <p><strong>Important distinction:</strong> APRA does not calculate the Research Match Score shown above. APRA publishes the underlying product data and the legislated performance-test result. This prototype applies its own disclosed weighting and peer-ranking rules to create a research starting point.</p>
           <p>Fees and returns are ranked against products with the required data for the selected balance and period. For balances between APRA's published points, annual fee dollars are estimated between the two closest points. Past performance is not a reliable indicator of future performance. APRA data does not cover every suitability factor, including insurance, eligibility, features and service quality.</p>
         </div>
